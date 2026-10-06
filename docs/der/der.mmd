@@ -8,16 +8,21 @@ erDiagram
     HABILIDADE ||--o{ VOLUNTARIO_HABILIDADE : "classifica"
     OPORTUNIDADE ||--o{ OPORTUNIDADE_HABILIDADE : "deseja"
     HABILIDADE ||--o{ OPORTUNIDADE_HABILIDADE : "classifica"
+    USUARIO |o--o{ CANDIDATURA : "decide"
+    USUARIO |o--o{ PARTICIPACAO : "registra"
     USUARIO ||--o{ HISTORICO_STATUS : "altera"
+    OPORTUNIDADE |o--o{ HISTORICO_STATUS : "tem"
+    CANDIDATURA |o--o{ HISTORICO_STATUS : "tem"
+    PARTICIPACAO |o--o{ HISTORICO_STATUS : "tem"
 
     USUARIO {
         bigint id PK
         varchar nome
-        varchar email UK
+        varchar email UK "único por lower(email)"
         varchar senha_hash
         varchar papel "VOLUNTARIO, COORDENADOR, ADMINISTRADOR"
         boolean ativo
-        timestamp criado_em
+        timestamptz criado_em
     }
     PERFIL_VOLUNTARIO {
         bigint usuario_id PK, FK
@@ -28,11 +33,11 @@ erDiagram
     HABILIDADE {
         bigint id PK
         varchar nome UK
-        varchar tipo "HABILIDADE, INTERESSE"
     }
     VOLUNTARIO_HABILIDADE {
         bigint voluntario_id PK, FK
         bigint habilidade_id PK, FK
+        varchar tipo "HABILIDADE, INTERESSE"
     }
     OPORTUNIDADE {
         bigint id PK
@@ -40,10 +45,13 @@ erDiagram
         varchar titulo
         text descricao
         varchar local
-        timestamp data_acao
+        varchar cidade
+        char uf "2 letras"
+        timestamptz inicio
+        timestamptz fim "maior que inicio"
         int vagas "maior que 0"
         varchar status "ABERTA, ENCERRADA, CANCELADA"
-        timestamp criado_em
+        timestamptz criado_em
     }
     OPORTUNIDADE_HABILIDADE {
         bigint oportunidade_id PK, FK
@@ -54,27 +62,28 @@ erDiagram
         bigint oportunidade_id FK
         bigint voluntario_id FK
         varchar status "PENDENTE, ACEITA, REJEITADA, CANCELADA"
-        timestamp criada_em
-        timestamp decidida_em
-        bigint decidida_por FK
+        timestamptz criado_em
+        timestamptz decidido_em "só em ACEITA ou REJEITADA"
+        bigint decidido_por FK "só em ACEITA ou REJEITADA"
     }
     PARTICIPACAO {
         bigint id PK
         bigint candidatura_id FK, UK
         varchar status "CONFIRMADA, PRESENTE, AUSENTE, CANCELADA, CANCELADA_TARDIA"
-        decimal horas_realizadas "maior que 0"
-        timestamp registrado_em
-        bigint registrado_por FK
-        timestamp cancelada_em
+        decimal horas_realizadas "nula ou maior que 0, obrigatória em PRESENTE"
+        timestamptz registrado_em "só em PRESENTE ou AUSENTE"
+        bigint registrado_por FK "só em PRESENTE ou AUSENTE"
+        timestamptz cancelado_em "só em CANCELADA e CANCELADA_TARDIA"
     }
     HISTORICO_STATUS {
         bigint id PK
-        varchar entidade "OPORTUNIDADE, CANDIDATURA, PARTICIPACAO"
-        bigint entidade_id
+        bigint oportunidade_id FK "só uma das três FKs preenchida"
+        bigint candidatura_id FK
+        bigint participacao_id FK
         varchar status_anterior
         varchar status_novo
         bigint alterado_por FK
-        timestamp alterado_em
+        timestamptz alterado_em
         varchar observacao
     }
     PARAMETRO {
