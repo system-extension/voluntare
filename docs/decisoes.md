@@ -27,6 +27,7 @@ Cada trilha é revisada por outra pessoa do grupo antes de entrar na `develop`.
 | D-07 | Vaga controlada por transação com lock da oportunidade | Trigger no banco | Regra fica no service, como pede o briefing | Definida |
 | D-08 | PR com pelo menos uma revisão de outro integrante, `main` protegida | Commit direto | Exigência do briefing | Definida |
 | D-09 | Spring Boot 3.5.x | Spring Boot 4.x | Exigido pelo briefing (seção 8). A 3.5 é a última linha do 3.x | Definida (briefing) |
+| D-10 | Monólito modular por pacotes (módulo → camadas) | Spring Modulith | Domínio pequeno e prazo acadêmico. O Modulith exigiria aprendizado da equipe sem ganho proporcional. A estrutura por módulo permite migrar depois | Definida |
 
 ## 3. Perguntas de descoberta do briefing
 

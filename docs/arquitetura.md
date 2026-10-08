@@ -32,18 +32,24 @@ Pontos ainda em aberto estão em [decisoes.md](decisoes.md).
 
 ## Organização do backend
 
-Pacotes por módulo, cada um com `controller`, `service`, `repository`, `dto` e `entity`.
+Monólito modular: um pacote por módulo dentro de `br.univille.voluntare` e, dentro de cada módulo, um subpacote por camada. Cada módulo tem só as camadas de que precisa. Não usamos Spring Modulith (D-10).
 
-- `auth`
-- `usuario`
-- `voluntario` (perfil e habilidades)
-- `oportunidade`
-- `candidatura`
-- `participacao`
-- `dashboard`
-- `shared` (erros, configuração, utilitários)
+| Módulo | Responsabilidade | Camadas |
+|---|---|---|
+| `auth` | Login e emissão do token JWT | controller, service, dto |
+| `usuario` | Contas de acesso e papéis | controller, service, repository, dto, entity |
+| `voluntario` | Perfil do voluntário e catálogo de habilidades | controller, service, repository, dto, entity |
+| `oportunidade` | Oportunidades e habilidades desejadas | controller, service, repository, dto, entity |
+| `candidatura` | Candidaturas, aceite, rejeição e controle de vagas | controller, service, repository, dto, entity |
+| `participacao` | Presença, horas e cancelamento | controller, service, repository, dto, entity |
+| `historico` | Registro das mudanças de status em `historico_status` | service, repository, entity |
+| `parametro` | Parâmetros do sistema, como o prazo de devolução da vaga | controller, service, repository, dto, entity |
+| `dashboard` | Indicadores do coordenador, calculados por consulta | controller, service, dto |
+| `shared` | Erros, configuração e utilitários | config, exception, util |
 
 Regras de negócio ficam nos services. Controllers só recebem a requisição, validam e chamam o service. Entidades não são expostas na API, só DTOs.
+
+O módulo `historico` não tem endpoint próprio. Os services de oportunidade, candidatura e participação chamam o `HistoricoService` sempre que mudam um status, na mesma transação da mudança. Assim, nunca existe mudança sem histórico, nem histórico sem mudança.
 
 ## Comunicação entre as camadas
 
@@ -64,6 +70,6 @@ Regras de negócio ficam nos services. Controllers só recebem a requisição, v
 
 - **Vagas:** ao aceitar uma candidatura, o service trava a linha da oportunidade dentro de uma transação, conta as participações que ocupam vaga e só confirma se houver vaga. Isso evita que dois aceites simultâneos passem do limite.
 - **Candidatura única:** garantida no service e por índice único no banco (`oportunidade_id` + `voluntario_id`).
-- **Histórico:** nada é apagado fisicamente. Oportunidades e participações mudam de status e as mudanças ficam em `historico_status`.
+- **Histórico:** nada é apagado fisicamente. Oportunidades, candidaturas e participações mudam de status e cada mudança fica em `historico_status`.
 
 O detalhamento das restrições está em [der/der.md](der/der.md).
