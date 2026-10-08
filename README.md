@@ -19,7 +19,7 @@ O papel é a responsabilidade principal, não uma divisão rígida. Todos partic
 
 - Backend: Java 21 + Spring Boot 3.x, Spring Data JPA, Spring Security
 - Banco: PostgreSQL
-- Frontend: HTML, CSS e JavaScript (React + Vite, a confirmar)
+- Frontend: HTML, CSS e JavaScript (React + Vite)
 - API: REST/JSON, documentada com OpenAPI/Swagger
 - Testes: JUnit 5 e Mockito
 
