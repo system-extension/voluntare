@@ -18,14 +18,15 @@ Cada trilha é revisada por outra pessoa do grupo antes de entrar na `develop`.
 
 | ID | Decisão | Alternativa | Motivo | Status |
 |---|---|---|---|---|
-| D-01 | PostgreSQL | MySQL | CHECK, índices únicos e lock de linha para o controle de vagas | Proposta |
-| D-02 | Maven | Gradle | Mais simples para o grupo | Proposta |
-| D-03 | React + Vite | JavaScript puro | Componentes reaproveitáveis. O grupo precisa entender o código | Proposta, Marcus confirma |
-| D-04 | JWT (Bearer) | Sessão | Frontend e backend separados | Proposta |
-| D-05 | Flyway para migrações e carga inicial | `ddl-auto` do Hibernate | Schema versionado e massa de demonstração sem edição manual | Proposta |
-| D-06 | Figma para os mockups | Excalidraw | Exportação em PNG e link para revisão | Proposta |
-| D-07 | Vaga controlada por transação com lock da oportunidade | Trigger no banco | Regra fica no service, como pede o briefing | Proposta |
-| D-08 | PR com pelo menos uma revisão de outro integrante, `main` protegida | Commit direto | Exigência do briefing | Proposta |
+| D-01 | PostgreSQL | MySQL | CHECK, índices únicos e lock de linha para o controle de vagas | Definida |
+| D-02 | Maven | Gradle | Mais simples para o grupo | Definida |
+| D-03 | React + Vite | JavaScript puro | Componentes reaproveitáveis. O grupo precisa entender o código | Definida |
+| D-04 | JWT (Bearer) | Sessão | Frontend e backend separados | Definida |
+| D-05 | Flyway para migrações e carga inicial | `ddl-auto` do Hibernate | Schema versionado e massa de demonstração sem edição manual | Definida |
+| D-06 | Figma para os mockups | Excalidraw | Exportação em PNG e link para revisão | Definida |
+| D-07 | Vaga controlada por transação com lock da oportunidade | Trigger no banco | Regra fica no service, como pede o briefing | Definida |
+| D-08 | PR com pelo menos uma revisão de outro integrante, `main` protegida | Commit direto | Exigência do briefing | Definida |
+| D-09 | Spring Boot 3.5.x | Spring Boot 4.x | Exigido pelo briefing (seção 8). A 3.5 é a última linha do 3.x | Definida (briefing) |
 
 ## 3. Perguntas de descoberta do briefing
 
@@ -53,4 +54,4 @@ Cada trilha é revisada por outra pessoa do grupo antes de entrar na `develop`.
 ## 5. Dúvidas para o professor
 
 - Confirmar as propostas marcadas como "Validar com PO".
-- Confirmar o prazo de entrega do PR desta sprint (aula ou até 04/10).
+
