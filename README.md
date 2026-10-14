@@ -57,4 +57,16 @@ Não fazemos commit direto na `main`. Todo trabalho entra por Pull Request, revi
 
 ## Como executar
 
-A definir nas próximas sprints, quando backend e frontend estiverem criados.
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+O servidor de desenvolvimento inicia em `http://localhost:5173`.
+
+### Backend
+
+A definir nas próximas sprints.
