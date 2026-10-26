@@ -4,7 +4,7 @@ spring:
 
   # Valores padrão batem com o compose.yaml. Em outro ambiente, sobrescreva pelas variáveis.
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/voluntare}
+    url: ${DB_URL:jdbc:postgresql://localhost:${DB_PORT:5432}/voluntare}
     username: ${DB_USER:voluntare}
     password: ${DB_PASSWORD:voluntare}
 

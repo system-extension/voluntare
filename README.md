@@ -85,6 +85,8 @@ docker compose up -d
 
 Sobe o PostgreSQL 16 em `localhost:5432` (banco, usuário e senha `voluntare`). Os dados ficam no volume `voluntare-dados`. Para recomeçar do zero: `docker compose down -v`.
 
+Se a máquina já tiver um PostgreSQL instalado na porta 5432, o backend conecta nele e dá erro de senha. Nesse caso, defina a variável de ambiente `DB_PORT` com outra porta (ex.: `5433`). O `compose.yaml` e o backend leem a mesma variável. No Windows: `setx DB_PORT 5433` e abra um terminal novo.
+
 O schema e a massa de demonstração são aplicados pelo Flyway quando o backend sobe (`backend/src/main/resources/db/migration`). Todos os usuários da demonstração usam a senha `Voluntare@2026`:
 
 | Usuário | Papel |

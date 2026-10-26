@@ -8,8 +8,10 @@ services:
       POSTGRES_DB: voluntare
       POSTGRES_USER: voluntare
       POSTGRES_PASSWORD: voluntare
+    # Porta no host: 5432 por padrão. Se a máquina já tiver um PostgreSQL nessa porta,
+    # defina DB_PORT (ex.: 5433); o backend lê a mesma variável.
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - voluntare-dados:/var/lib/postgresql/data
     healthcheck:
