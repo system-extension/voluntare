@@ -28,6 +28,11 @@ Cada trilha é revisada por outra pessoa do grupo antes de entrar na `develop`.
 | D-08 | PR com pelo menos uma revisão de outro integrante, `main` protegida | Commit direto | Exigência do briefing | Definida |
 | D-09 | Spring Boot 3.5.x | Spring Boot 4.x | Exigido pelo briefing (seção 8). A 3.5 é a última linha do 3.x | Definida (briefing) |
 | D-10 | Monólito modular por pacotes (módulo → camadas) | Spring Modulith | Domínio pequeno e prazo acadêmico. O Modulith exigiria aprendizado da equipe sem ganho proporcional. A estrutura por módulo permite migrar depois | Definida |
+| D-11 | Responsável da vaga garantido por FK composta (`organizacao_id`, `responsavel_id`) → `usuario (organizacao_id, id)` | Só no service | O briefing pede regras críticas no service e, quando pertinente, no banco. Com uma linha de SQL o banco impede responsável de outra ONG ou voluntário como responsável | Definida |
+| D-12 | Sem `criado_por` na oportunidade | Coluna `criado_por` | Quem criou já fica na linha de criação do `historico_status` (`status_anterior` nulo). Uma coluna a mais teria de ser mantida em sincronia | Definida |
+| D-13 | Linha de criação única no histórico, por índice único parcial | Só no service | Garante uma linha de criação por oportunidade, candidatura e participação | Definida |
+| D-14 | Massa de demonstração na migração `V2`, com datas relativas ao dia da migração | Datas fixas | As vagas futuras e encerradas continuam coerentes em qualquer dia de demonstração | Definida |
+| D-15 | CI do backend no GitHub Actions (`mvnw verify` com Testcontainers) | Testar só localmente | Os testes do banco precisam de Docker, que nem toda máquina da equipe tem | Definida |
 
 ## 3. Perguntas de descoberta do briefing
 
@@ -43,16 +48,20 @@ Cada trilha é revisada por outra pessoa do grupo antes de entrar na `develop`.
 | ID | Pergunta | Proposta | Status |
 |---|---|---|---|
 | Q-01 | Qual o prazo mínimo para a vaga ser devolvida? | Parâmetro do sistema, sugestão de 48 horas antes do início | Validar com PO |
-| Q-02 | Existe o conceito de organização? | Fora do MVP. O coordenador fica ligado direto às oportunidades | Validar com PO |
+| Q-02 | Existe o conceito de organização? | Sim. Tabela `organizacao` (DER v2). A ONG se autocadastra e é a dona das vagas. Equipe com dois papéis: `GESTOR` (administrador da ONG) e `COORDENADOR`. Sem administrador da plataforma | Definida pela equipe |
 | Q-03 | Quem foi rejeitado ou cancelou pode se candidatar de novo? | Não. Uma candidatura por voluntário e oportunidade | Validar com PO |
 | Q-04 | O voluntário pode retirar uma candidatura pendente? | Sim, com status cancelada | Validar com PO |
 | Q-05 | Quem encerra a oportunidade? | O coordenador, manualmente. Horas só podem ser registradas depois do fim da ação | Validar com PO |
-| Q-06 | Quem cria os coordenadores? | O administrador. O voluntário se cadastra sozinho | Validar com PO |
+| Q-06 | Quem cria os coordenadores? | O gestor da ONG, que também cria as vagas e define o responsável por cada uma. O coordenador só mexe nas vagas pelas quais responde; o gestor pode operar qualquer vaga da ONG. O voluntário se cadastra sozinho | Definida pela equipe |
 | Q-07 | Uma oportunidade tem mais de uma data? | Não. Uma única ocorrência, com início e fim | Validar com PO |
 | Q-08 | O que acontece com os confirmados se a oportunidade for cancelada? | Continuam no histórico e o cancelamento fica registrado | Validar com PO |
 | Q-09 | As horas registradas podem passar da duração planejada da ação? | Não. O limite é a duração (fim menos início) | Validar com PO |
+| Q-10 | Existe vaga remota ou híbrida? | Não. Toda vaga é presencial, com local, cidade e UF obrigatórios | Definida pela equipe |
+| Q-11 | Como a vaga é classificada? | Por causa (Educação, Meio ambiente, Assistência social, Animais, Comunicação), não por habilidade. As habilidades ficam só no perfil do voluntário | Definida pela equipe |
+| Q-12 | A vaga pode ser salva antes de publicar? | Sim, como rascunho, só com o título. Ao publicar, os demais campos passam a ser obrigatórios | Definida pela equipe |
 
 ## 5. Dúvidas para o professor
 
 - Confirmar as propostas marcadas como "Validar com PO".
+- Q-11: a proposta anterior do DER mantinha as habilidades desejadas na vaga, por entender que o briefing as pede. A equipe decidiu classificar a vaga só por causa. Confirmar que isso atende ao briefing.
 
