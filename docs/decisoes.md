@@ -1,6 +1,12 @@
 # Decisões e dúvidas
 
-Tudo o que está marcado como "Proposta" foi sugerido pela equipe e ainda precisa de confirmação. Itens de negócio dependem do Prof. Sestito (Cliente/PO). Itens técnicos podem ser questionados pelo Tech Lead.
+Itens de negócio dependem do Prof. Sestito (Cliente/PO). Itens técnicos podem ser questionados pelo Tech Lead.
+
+Status usados:
+
+- **Definida**: decisão técnica da equipe, justificada.
+- **Definida pela equipe**: decisão de negócio tomada pela equipe para destravar o modelo. Pode ser revista pelo PO.
+- **Adotada pela equipe, implementada no V1. Aguarda validação do PO**: proposta levada ao professor, ainda sem resposta registrada. O schema (`V1__schema_inicial.sql`) já segue a proposta; se o PO pedir ajuste, ele entra por nova migração.
 
 ## 1. Organização da sprint
 
@@ -38,30 +44,31 @@ Cada trilha é revisada por outra pessoa do grupo antes de entrar na `develop`.
 
 | Pergunta | Proposta da equipe | Status |
 |---|---|---|
-| Quais dados são necessários no perfil do voluntário? | Nome, e-mail, telefone, cidade, disponibilidade em texto e habilidades/interesses. Sem CPF, endereço ou foto | Validar com PO |
-| Quando a candidatura consome uma vaga? | Só quando é aceita. Candidatura pendente não ocupa vaga | Validar com PO |
-| Como tratar desistência de voluntário confirmado? | Ele pode cancelar. Se houver tempo para substituição, a vaga volta. Se for tarde, a participação fica como cancelada tardia e a vaga não volta | Validar com PO |
-| Quais indicadores o coordenador precisa? | Oportunidades abertas, preenchidas e encerradas, mais candidaturas pendentes | Validar com PO |
+| Quais dados são necessários no perfil do voluntário? | Nome, e-mail, telefone, cidade, disponibilidade em texto e habilidades/interesses. Sem CPF, endereço ou foto | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
+| Quando a candidatura consome uma vaga? | Só quando é aceita. Candidatura pendente não ocupa vaga | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
+| Como tratar desistência de voluntário confirmado? | Ele pode cancelar. Se houver tempo para substituição, a vaga volta. Se for tarde, a participação fica como cancelada tardia e a vaga não volta | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
+| Quais indicadores o coordenador precisa? | Oportunidades abertas, preenchidas e encerradas, mais candidaturas pendentes | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
 
 ## 4. Perguntas próprias da equipe
 
 | ID | Pergunta | Proposta | Status |
 |---|---|---|---|
-| Q-01 | Qual o prazo mínimo para a vaga ser devolvida? | Parâmetro do sistema, sugestão de 48 horas antes do início | Validar com PO |
+| Q-01 | Qual o prazo mínimo para a vaga ser devolvida? | Parâmetro do sistema, sugestão de 48 horas antes do início | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
 | Q-02 | Existe o conceito de organização? | Sim. Tabela `organizacao` (DER v2). A ONG se autocadastra e é a dona das vagas. Equipe com dois papéis: `GESTOR` (administrador da ONG) e `COORDENADOR`. Sem administrador da plataforma | Definida pela equipe |
-| Q-03 | Quem foi rejeitado ou cancelou pode se candidatar de novo? | Não. Uma candidatura por voluntário e oportunidade | Validar com PO |
-| Q-04 | O voluntário pode retirar uma candidatura pendente? | Sim, com status cancelada | Validar com PO |
-| Q-05 | Quem encerra a oportunidade? | O coordenador, manualmente. Horas só podem ser registradas depois do fim da ação | Validar com PO |
+| Q-03 | Quem foi rejeitado ou cancelou pode se candidatar de novo? | Não. Uma candidatura por voluntário e oportunidade | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
+| Q-04 | O voluntário pode retirar uma candidatura pendente? | Sim, com status cancelada | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
+| Q-05 | Quem encerra a oportunidade? | O coordenador, manualmente. Horas só podem ser registradas depois do fim da ação | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
 | Q-06 | Quem cria os coordenadores? | O gestor da ONG, que também cria as vagas e define o responsável por cada uma. O coordenador só mexe nas vagas pelas quais responde; o gestor pode operar qualquer vaga da ONG. O voluntário se cadastra sozinho | Definida pela equipe |
-| Q-07 | Uma oportunidade tem mais de uma data? | Não. Uma única ocorrência, com início e fim | Validar com PO |
-| Q-08 | O que acontece com os confirmados se a oportunidade for cancelada? | Continuam no histórico e o cancelamento fica registrado | Validar com PO |
-| Q-09 | As horas registradas podem passar da duração planejada da ação? | Não. O limite é a duração (fim menos início) | Validar com PO |
+| Q-07 | Uma oportunidade tem mais de uma data? | Não. Uma única ocorrência, com início e fim | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
+| Q-08 | O que acontece com os confirmados se a oportunidade for cancelada? | Continuam no histórico e o cancelamento fica registrado | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
+| Q-09 | As horas registradas podem passar da duração planejada da ação? | Não. O limite é a duração (fim menos início) | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
 | Q-10 | Existe vaga remota ou híbrida? | Não. Toda vaga é presencial, com local, cidade e UF obrigatórios | Definida pela equipe |
 | Q-11 | Como a vaga é classificada? | Por causa (Educação, Meio ambiente, Assistência social, Animais, Comunicação), não por habilidade. As habilidades ficam só no perfil do voluntário | Definida pela equipe |
 | Q-12 | A vaga pode ser salva antes de publicar? | Sim, como rascunho, só com o título. Ao publicar, os demais campos passam a ser obrigatórios | Definida pela equipe |
 
 ## 5. Dúvidas para o professor
 
-- Confirmar as propostas marcadas como "Validar com PO".
-- Q-11: a proposta anterior do DER mantinha as habilidades desejadas na vaga, por entender que o briefing as pede. A equipe decidiu classificar a vaga só por causa. Confirmar que isso atende ao briefing.
+- Confirmar as propostas marcadas como "Aguarda validação do PO" (seções 3 e 4).
+- Q-11: o briefing (3.1) pede "habilidades desejadas" na oportunidade. A equipe decidiu classificar a vaga só por causa e manter as habilidades no perfil do voluntário. Confirmar que isso atende ao briefing. Se não atender, volta a tabela `oportunidade_habilidade` por nova migração.
+- Q-02 e Q-06: o briefing cita o ator "Administrador" (gerencia usuários e parâmetros). No DER v2 não há administrador da plataforma: o gestor da ONG cadastra os coordenadores e os parâmetros mudam só por migração. Confirmar que isso atende ao briefing.
 
