@@ -10,8 +10,8 @@ Link do Figma: _a preencher_
 |---|---|
 | Todos | Login, cadastro de voluntário |
 | Voluntário | Oportunidades abertas (com filtro), detalhe da oportunidade, meu perfil, minhas candidaturas, meu histórico |
-| Coordenador | Dashboard, minhas oportunidades, criar/editar oportunidade, candidaturas da oportunidade, registro de presença e horas |
-| Administrador | Usuários, parâmetros |
+| Coordenador | Dashboard, oportunidades pelas quais responde, candidaturas da oportunidade, registro de presença e horas |
+| Gestor (administrador da ONG) | Tudo o que o coordenador vê, para qualquer vaga da ONG, mais criar e editar oportunidades, definir o responsável de cada uma e cadastrar ou desativar coordenadores |
 
 ## Mapa de navegação
 
@@ -19,17 +19,18 @@ Link do Figma: _a preencher_
 flowchart TD
     L[Login] --> V[Voluntário: oportunidades abertas]
     L --> C[Coordenador: dashboard]
-    L --> A[Administrador: usuários]
+    L --> G[Gestor: painel da ONG]
     V --> VD[Detalhe da oportunidade]
     VD --> VC[Candidatar-se]
     V --> VP[Meu perfil]
     V --> VH[Meu histórico]
     C --> CO[Minhas oportunidades]
-    CO --> CN[Criar oportunidade]
+    G --> CN[Criar oportunidade]
     CO --> CC[Candidaturas]
     CC --> CA[Aceitar ou rejeitar]
     CO --> CH[Registrar presença e horas]
-    A --> AP[Parâmetros]
+    G --> GE[Equipe: coordenadores]
+    G --> CO
 ```
 
 ## Fluxo completo para demonstrar

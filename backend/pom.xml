@@ -18,6 +18,11 @@
 
     <properties>
         <java.version>21</java.version>
+        <!--
+            Testcontainers 1.21.3 (padrão do Boot 3.5.6) não fala com o Docker Engine 29+,
+            que exige API 1.44 ou maior. A 1.21.4 corrige isso.
+        -->
+        <testcontainers.version>1.21.4</testcontainers.version>
     </properties>
 
     <dependencies>
@@ -53,11 +58,46 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- Persistência: JPA + PostgreSQL -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Migrações (D-05). Desde o Flyway 10 o suporte ao PostgreSQL é um módulo separado -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+
+        <!-- Testes com PostgreSQL real em contêiner (mesmo banco do ambiente local) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <!--
-            Entram em feature/setup-banco, junto com a configuração do datasource
-            (sem ela a aplicação não sobe):
-              spring-boot-starter-data-jpa, postgresql, Flyway
-            Entram em feature/setup-seguranca:
+            Entra em feature/setup-seguranca:
               spring-boot-starter-security
         -->
     </dependencies>

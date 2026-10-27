@@ -37,14 +37,15 @@ Monólito modular: um pacote por módulo dentro de `br.univille.voluntare` e, de
 | Módulo | Responsabilidade | Camadas |
 |---|---|---|
 | `auth` | Login e emissão do token JWT | controller, service, dto |
+| `organizacao` | Autocadastro da ONG e da sua equipe (gestores e coordenadores) | controller, service, repository, dto, entity |
 | `usuario` | Contas de acesso e papéis | controller, service, repository, dto, entity |
 | `voluntario` | Perfil do voluntário e catálogo de habilidades | controller, service, repository, dto, entity |
-| `oportunidade` | Oportunidades e habilidades desejadas | controller, service, repository, dto, entity |
+| `oportunidade` | Oportunidades, causa, rascunho e responsável | controller, service, repository, dto, entity |
 | `candidatura` | Candidaturas, aceite, rejeição e controle de vagas | controller, service, repository, dto, entity |
 | `participacao` | Presença, horas e cancelamento | controller, service, repository, dto, entity |
 | `historico` | Registro das mudanças de status em `historico_status` | service, repository, entity |
-| `parametro` | Parâmetros do sistema, como o prazo de devolução da vaga | controller, service, repository, dto, entity |
-| `dashboard` | Indicadores do coordenador, calculados por consulta | controller, service, dto |
+| `parametro` | Parâmetros do sistema, como o prazo de devolução da vaga. Mudam só por migração | service, repository, entity |
+| `dashboard` | Indicadores do painel da ONG, calculados por consulta | controller, service, dto |
 | `shared` | Erros, configuração e utilitários | config, exception, util |
 
 Regras de negócio ficam nos services. Controllers só recebem a requisição, validam e chamam o service. Entidades não são expostas na API, só DTOs.
@@ -62,14 +63,17 @@ O módulo `historico` não tem endpoint próprio. Os services de oportunidade, c
 
 | Perfil | Pode |
 |---|---|
-| Voluntário | Editar o próprio perfil, ver oportunidades abertas, candidatar-se, cancelar candidatura, ver o próprio histórico |
-| Coordenador | Criar e gerenciar as próprias oportunidades, aceitar ou rejeitar candidaturas, registrar presença e horas, ver o dashboard |
-| Administrador | Gerenciar usuários e parâmetros básicos |
+| Voluntário | Cadastrar-se, editar o próprio perfil, ver oportunidades abertas, candidatar-se, cancelar candidatura ou participação, ver o próprio histórico |
+| Coordenador | Só nas vagas pelas quais responde: aceitar ou rejeitar candidaturas, registrar presença e horas, encerrar. Ver o painel dessas vagas |
+| Gestor (administrador da ONG) | Autocadastrar a ONG, cadastrar e desativar coordenadores, criar vagas e definir o responsável por cada uma. Pode operar qualquer vaga da ONG e ver o painel completo |
+
+Não existe administrador da plataforma. O papel de cada usuário fica em `usuario.papel` e a ONG em `usuario.organizacao_id`.
 
 ## Regras críticas
 
 - **Vagas:** ao aceitar uma candidatura, o service trava a linha da oportunidade dentro de uma transação, conta as participações que ocupam vaga e só confirma se houver vaga. Isso evita que dois aceites simultâneos passem do limite.
 - **Candidatura única:** garantida no service e por índice único no banco (`oportunidade_id` + `voluntario_id`).
+- **Acesso à vaga:** o service confere se quem age é o responsável da vaga ou um gestor da mesma ONG. O banco garante, por FK composta, que o responsável é gestor ou coordenador da ONG dona da vaga (D-11).
 - **Histórico:** nada é apagado fisicamente. Oportunidades, candidaturas e participações mudam de status e cada mudança fica em `historico_status`.
 
 O detalhamento das restrições está em [der/der.md](der/der.md).

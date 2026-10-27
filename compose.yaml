@@ -1,0 +1,24 @@
+# Ambiente local: sobe o PostgreSQL igual para toda a equipe.
+# Uso: docker compose up -d   (na raiz do repositório)
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: voluntare-postgres
+    environment:
+      POSTGRES_DB: voluntare
+      POSTGRES_USER: voluntare
+      POSTGRES_PASSWORD: voluntare
+    # Porta no host: 5432 por padrão. Se a máquina já tiver um PostgreSQL nessa porta,
+    # defina DB_PORT (ex.: 5433); o backend lê a mesma variável.
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - voluntare-dados:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U voluntare -d voluntare"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  voluntare-dados:

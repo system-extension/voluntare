@@ -1,13 +1,13 @@
 erDiagram
+    ORGANIZACAO ||--o{ USUARIO : "tem na equipe"
+    ORGANIZACAO ||--o{ OPORTUNIDADE : "publica"
     USUARIO ||--o| PERFIL_VOLUNTARIO : "possui"
-    USUARIO ||--o{ OPORTUNIDADE : "coordena"
+    USUARIO ||--o{ OPORTUNIDADE : "responde por"
     PERFIL_VOLUNTARIO ||--o{ CANDIDATURA : "envia"
     OPORTUNIDADE ||--o{ CANDIDATURA : "recebe"
     CANDIDATURA ||--o| PARTICIPACAO : "gera quando aceita"
     PERFIL_VOLUNTARIO ||--o{ VOLUNTARIO_HABILIDADE : "informa"
     HABILIDADE ||--o{ VOLUNTARIO_HABILIDADE : "classifica"
-    OPORTUNIDADE ||--o{ OPORTUNIDADE_HABILIDADE : "deseja"
-    HABILIDADE ||--o{ OPORTUNIDADE_HABILIDADE : "classifica"
     USUARIO |o--o{ CANDIDATURA : "decide"
     USUARIO |o--o{ PARTICIPACAO : "registra"
     USUARIO ||--o{ HISTORICO_STATUS : "altera"
@@ -15,12 +15,24 @@ erDiagram
     CANDIDATURA |o--o{ HISTORICO_STATUS : "tem"
     PARTICIPACAO |o--o{ HISTORICO_STATUS : "tem"
 
+    ORGANIZACAO {
+        bigint id PK
+        varchar nome UK "único por lower(nome)"
+        text descricao
+        varchar cidade
+        char uf "2 letras"
+        varchar email
+        varchar telefone
+        boolean ativa
+        timestamptz criado_em
+    }
     USUARIO {
         bigint id PK
+        bigint organizacao_id FK "obrigatória em GESTOR e COORDENADOR, nula em VOLUNTARIO"
         varchar nome
         varchar email UK "único por lower(email)"
         varchar senha_hash
-        varchar papel "VOLUNTARIO, COORDENADOR, ADMINISTRADOR"
+        varchar papel "VOLUNTARIO, COORDENADOR, GESTOR"
         boolean ativo
         timestamptz criado_em
     }
@@ -41,21 +53,21 @@ erDiagram
     }
     OPORTUNIDADE {
         bigint id PK
-        bigint coordenador_id FK
+        bigint organizacao_id FK
+        bigint responsavel_id FK "gestor ou coordenador da mesma organização"
         varchar titulo
-        text descricao
-        varchar local
+        text descricao "obrigatórios fora de RASCUNHO e CANCELADA"
+        text atividades
+        text requisitos
+        varchar causa "EDUCACAO, MEIO_AMBIENTE, ASSISTENCIA_SOCIAL, ANIMAIS, COMUNICACAO"
+        varchar local "presencial"
         varchar cidade
         char uf "2 letras"
         timestamptz inicio
         timestamptz fim "maior que inicio"
-        int vagas "maior que 0"
-        varchar status "ABERTA, ENCERRADA, CANCELADA"
+        int vagas "de 1 a 999"
+        varchar status "RASCUNHO, ABERTA, ENCERRADA, CANCELADA"
         timestamptz criado_em
-    }
-    OPORTUNIDADE_HABILIDADE {
-        bigint oportunidade_id PK, FK
-        bigint habilidade_id PK, FK
     }
     CANDIDATURA {
         bigint id PK
@@ -80,7 +92,7 @@ erDiagram
         bigint oportunidade_id FK "só uma das três FKs preenchida"
         bigint candidatura_id FK
         bigint participacao_id FK
-        varchar status_anterior
+        varchar status_anterior "nulo só na criação"
         varchar status_novo
         bigint alterado_por FK
         timestamptz alterado_em
