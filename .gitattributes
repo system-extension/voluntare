@@ -1,0 +1,6 @@
+# Normaliza finais de linha: LF no repositório, padrão do SO na máquina de cada um
+* text=auto
+
+# Scripts do Maven Wrapper precisam manter o final de linha correto em cada SO
+backend/mvnw text eol=lf
+*.cmd text eol=crlf
