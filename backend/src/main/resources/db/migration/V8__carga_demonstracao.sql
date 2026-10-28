@@ -1,4 +1,4 @@
--- V2: massa de demonstração (issue #14). Dados fictícios.
+-- V8: massa de demonstração (issue #14). Dados fictícios.
 -- Senha de todos os usuários: Voluntare@2026 (BCrypt, custo 10).
 -- As datas são relativas ao dia em que a migração roda, para que vagas futuras e encerradas façam sentido na demonstração.
 -- Todas as linhas respeitam as regras do service: responsável da mesma organização, vagas não excedidas,

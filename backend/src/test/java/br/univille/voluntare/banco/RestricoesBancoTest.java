@@ -22,7 +22,7 @@ import br.univille.voluntare.TestcontainersConfiguration;
 
 /**
  * Confere que o banco barra, sozinho, os dados que violam as restrições do DER.
- * Usa a massa da V2: organização 1 (gestora 1, coordenadores 2 e 3), organização 2 (gestor 4)
+ * Usa a massa da V8: organização 1 (gestora 1, coordenadores 2 e 3), organização 2 (gestor 4)
  * e voluntários a partir do id 6. Cada caso roda numa transação desfeita no fim.
  */
 @SpringBootTest
