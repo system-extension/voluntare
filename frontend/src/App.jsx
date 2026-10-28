@@ -1,16 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Bell, Bookmark, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, Globe2, MapPin, Menu, MessageSquare, Search, UserRound, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Bell, Bookmark, Check, ClipboardList, ChevronLeft, ChevronRight, Clock3, Globe2, MapPin, Menu, Search, UserRound, X } from 'lucide-react';
 import { jobs, normalize } from './data.js';
 import AccountPages from './AccountPages.jsx';
 import OrganizationPage from './OrganizationPage.jsx';
+import HomePage, { HomeIntro } from './HomePage.jsx';
+import AccessPage from './AccessPage.jsx';
+import Applications, { ApplicationForm, useApplications } from './Applications.jsx';
 import { ORGANIZATION_JOBS_KEY, parseOrganizationJobs } from './organizationJobs.js';
 
 const PAGE_SIZE = 15;
 const initialParams = new URLSearchParams(window.location.search);
-const initialPage = Math.max(1, Number(initialParams.get('page')) || 1);
+const parsePage = value => Number.isSafeInteger(Number(value)) && Number(value) > 0 ? Number(value) : 1;
+const initialPage = parsePage(initialParams.get('page'));
 const causes = ['Todas as causas', 'Educação', 'Meio ambiente', 'Assistência social', 'Animais', 'Comunicação'];
-const accountViews = ['profile', 'preferences', 'myjobs', 'messages', 'notifications'];
-const screenViews = [...accountViews, 'organization'];
+const accountViews = ['profile', 'preferences', 'myjobs', 'applications', 'notifications'];
+const screenViews = [...accountViews, 'organization', 'organization-applications', 'login', 'organization-login'];
 const initialView = screenViews.includes(initialParams.get('screen')) ? initialParams.get('screen') : initialParams.has('q') ? 'results' : 'home';
 
 function Logo({ large = false }) {
@@ -26,11 +30,11 @@ function Modal({ title, children, onClose }) {
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = previousOverflow; };
   }, []);
-  return <dialog ref={ref} className="modal" onCancel={onClose} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+  return <dialog ref={ref} className="modal" aria-labelledby="modal-title" onCancel={onClose} onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
     <div className="modal-inner">
       <button className="icon-button modal-close" onClick={onClose} aria-label="Fechar"><X size={22} /></button>
       <Logo />
-      <h2>{title}</h2>
+      <h2 id="modal-title">{title}</h2>
       {children}
     </div>
   </dialog>;
@@ -52,7 +56,10 @@ export default function App() {
   const [location, setLocation] = useState(initialParams.get('l') || '');
   const [search, setSearch] = useState({ query, location });
   const [view, setView] = useState(initialView);
-  const [demoAccount, setDemoAccount] = useState(accountViews.includes(initialView));
+  const [demoAccount, setDemoAccount] = useState(false);
+  const [organizationAccount, setOrganizationAccount] = useState(null);
+  const [pendingJob, setPendingJob] = useState(null);
+  const applicationStore = useApplications();
   const [accountMenu, setAccountMenu] = useState(false);
   const [profile, setProfile] = useState({ name: 'Pessoa Voluntária', city: 'Sua cidade, Brasil', email: 'voluntario@example.com', about: '' });
   const [preferences, setPreferences] = useState({ visible: true, ready: false, values: { Causas: 'Educação', 'Horário disponível': 'Fins de semana', 'Formato da vaga': 'Remoto', 'Tempo de dedicação': '2 horas por semana', Deslocamento: 'Até 10 km' } });
@@ -69,7 +76,7 @@ export default function App() {
 
   useEffect(() => { try { localStorage.setItem('voluntare-saved', JSON.stringify(saved)); } catch { /* A interface continua funcionando sem armazenamento. */ } }, [saved]);
   useEffect(() => {
-    const titles = { organization: 'ONGs / Anunciar vagas', home: 'Encontre sua próxima oportunidade', results: 'Vagas de voluntariado', profile: 'Meu perfil', preferences: 'Preferências', myjobs: 'Minhas vagas', messages: 'Mensagens', notifications: 'Notificações' };
+    const titles = { organization: 'Painel da organização', 'organization-applications': 'Candidaturas recebidas', login: 'Entrar como voluntário', 'organization-login': 'Entrar como organização', applications: 'Minhas candidaturas', home: 'Encontre sua próxima oportunidade', results: 'Vagas de voluntariado', profile: 'Meu perfil', preferences: 'Preferências', myjobs: 'Minhas vagas', notifications: 'Notificações' };
     document.title = `${titles[view]} | Voluntare`;
   }, [view]);
   useEffect(() => {
@@ -84,7 +91,7 @@ export default function App() {
       const nextQuery = params.get('q') || '', nextLocation = params.get('l') || '';
       setQuery(nextQuery); setLocation(nextLocation); setSearch({ query: nextQuery, location: nextLocation });
       const nextView = screenViews.includes(params.get('screen')) ? params.get('screen') : params.has('q') ? 'results' : 'home';
-      setView(nextView); if (accountViews.includes(nextView)) setDemoAccount(true); setPage(Math.max(1, Number(params.get('page')) || 1));
+      setView(nextView); setPage(parsePage(params.get('page')));
       setCause(params.get('cause') || causes[0]); setMode(params.get('mode') || 'Todos os formatos');
       setSelectedId(null); setMobileDetail(false);
     };
@@ -120,7 +127,7 @@ export default function App() {
     window.history.pushState({}, '', window.location.pathname); window.scrollTo({ top: 0 });
   }
   function openScreen(screen) {
-    setView(screen); if (accountViews.includes(screen)) setDemoAccount(true); setModal(null); setMenuOpen(false); setAccountMenu(false);
+    setView(screen); setModal(null); setMenuOpen(false); setAccountMenu(false);
     window.history.pushState({}, '', `?screen=${screen}`); window.scrollTo({ top: 0 });
   }
   function openSavedJob(job) {
@@ -132,10 +139,24 @@ export default function App() {
   }
   function changePage(nextPage) {
     setPage(nextPage); setSelectedId(null); setMobileDetail(false); updateUrl({ page: nextPage });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
   }
   function toggleSave(id) { setSaved(current => current.includes(id) ? current.filter(item => item !== id) : [...current, id]); }
   function info(title) { setModal({ type: 'info', title }); setMenuOpen(false); }
+  function startApplication(job) {
+    if (!demoAccount) { setPendingJob(job); openScreen('login'); return; }
+    setModal({ type: 'apply', title: 'Candidate-se a esta oportunidade', job });
+  }
+  function enterAccount(person, isOrganization) {
+    if (isOrganization) { setOrganizationAccount(person); openScreen('organization'); return; }
+    setProfile(current => ({ name: person.name, email: person.email, city: current.email === person.email ? current.city : 'Sua cidade, Brasil', about: current.email === person.email ? current.about : '' })); setDemoAccount(true);
+    if (pendingJob) { const job = pendingJob; setPendingJob(null); openSavedJob(job); setModal({ type: 'apply', title: 'Candidate-se a esta oportunidade', job }); }
+    else openScreen('profile');
+  }
+  const needsOrganization = ['organization', 'organization-applications', 'organization-login'].includes(view);
+  const showAccess = view === 'login' || view === 'organization-login' || (accountViews.includes(view) && !demoAccount) || (needsOrganization && !organizationAccount);
+  const myApplications = applicationStore.applications.filter(item => item.email === profile.email);
+  const alreadyApplied = selected && myApplications.some(item => item.jobId === selected.id && item.status !== 'Cancelada');
 
   return <>
     <a className="skip-link" href="#main">Ir para o conteúdo principal</a>
@@ -143,18 +164,18 @@ export default function App() {
       <a className="brand-link" href="/" onClick={e => { e.preventDefault(); home(); }} aria-label="Voluntare, página inicial"><Logo /></a>
       <nav className="primary-nav" aria-label="Navegação principal">
         <a href="/" className={view === 'home' || view === 'results' ? 'active' : ''} onClick={e => { e.preventDefault(); home(); }}>Página inicial</a>
-        <button onClick={() => info('Conheça as organizações')}>Avaliações de ONGs</button>
+        <button onClick={() => info('Conheça as organizações')}>Organizações</button>
         <button onClick={() => runSearch('', '')}>Causas e oportunidades</button>
       </nav>
       <nav className="account-nav" aria-label="Sua conta">
         {demoAccount ? <div className="account-tools">
           <button className={`account-tool ${view === 'myjobs' ? 'active' : ''}`} aria-label="Minhas vagas" title="Minhas vagas" onClick={() => openScreen('myjobs')}><Bookmark size={21} fill="currentColor" /></button>
-          <button className={`account-tool ${view === 'messages' ? 'active' : ''}`} aria-label="Mensagens" title="Mensagens" onClick={() => openScreen('messages')}><MessageSquare size={21} fill="currentColor" /></button>
+          <button className={`account-tool ${view === 'applications' ? 'active' : ''}`} aria-label="Minhas candidaturas" title="Minhas candidaturas" onClick={() => openScreen('applications')}><ClipboardList size={21} /></button>
           <button className={`account-tool ${view === 'notifications' ? 'active' : ''}`} aria-label="Notificações" title="Notificações" onClick={() => openScreen('notifications')}><Bell size={21} fill="currentColor" /></button>
           <div className="account-menu-wrap"><button className={`account-tool ${view === 'profile' || view === 'preferences' ? 'active' : ''}`} aria-label="Conta" aria-expanded={accountMenu} title="Conta" onClick={() => setAccountMenu(!accountMenu)}><UserRound size={21} fill="currentColor" /></button>
           {accountMenu && <><button className="menu-dismiss" aria-label="Fechar menu da conta" onClick={() => setAccountMenu(false)} /><div className="account-dropdown" onKeyDown={event => { if (event.key === 'Escape') setAccountMenu(false); }}><strong>Conta de demonstração</strong><button onClick={() => openScreen('profile')}>Perfil</button><button onClick={() => openScreen('preferences')}>Preferências</button><button onClick={() => openScreen('myjobs')}>Minhas vagas</button><button onClick={() => { setDemoAccount(false); setAccountMenu(false); home(); }}>Sair da demonstração</button></div></>}
           </div>
-        </div> : <><button className="sign-in" onClick={() => setModal({ type: 'account', title: 'Seu próximo passo começa aqui' })}>Acessar</button><button className="country" onClick={() => info('País e idioma')}><span>BR</span> País e idioma</button></>}
+        </div> : <><button className="sign-in" onClick={() => openScreen('login')}>Entrar</button><button className="country" onClick={() => info('País e idioma')}><span>BR</span> País e idioma</button></>}
         <button className="employers" onClick={() => openScreen('organization')}>ONGs/Anunciar vagas</button>
       </nav>
       <button className="icon-button mobile-menu-button" aria-label="Abrir menu" aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button>
@@ -162,32 +183,22 @@ export default function App() {
     {menuOpen && <nav className="mobile-menu" aria-label="Menu móvel"><button onClick={home}>Página inicial</button><button onClick={() => info('Conheça as organizações')}>Avaliações de ONGs</button><button onClick={() => runSearch('', '')}>Causas e oportunidades</button><button onClick={() => openScreen('organization')}>ONGs/Anunciar vagas</button></nav>}
 
     <main id="main" className={accountViews.includes(view) ? 'account-main' : view === 'home' ? 'home-main' : 'results-main'}>
-      {view === 'organization' ? <OrganizationPage jobs={organizationJobs} onSave={saveOrganizationJob} storageError={storageError} onOpenJob={openSavedJob} /> : accountViews.includes(view) ? <AccountPages jobs={allJobs} view={view} saved={saved} toggleSave={toggleSave} onSearch={() => runSearch('', '')} onOpenJob={openSavedJob} profile={profile} setProfile={setProfile} preferences={preferences} setPreferences={setPreferences} /> : <>
+      {!showAccess && accountViews.includes(view) && <nav className="workspace-nav" aria-label="Área do voluntário">{[['profile', UserRound, 'Meu perfil'], ['preferences', Globe2, 'Preferências'], ['myjobs', Bookmark, 'Vagas salvas'], ['applications', ClipboardList, 'Candidaturas'], ['notifications', Bell, 'Notificações']].map(([screen, Icon, label]) => <button key={screen} aria-current={view === screen ? 'page' : undefined} onClick={() => openScreen(screen)}><Icon size={18} />{label}</button>)}</nav>}
+      {!showAccess && needsOrganization && <nav className="workspace-nav" aria-label="Área da organização"><strong className="workspace-identity">{organizationAccount.name}</strong><button aria-current={view === 'organization' ? 'page' : undefined} onClick={() => openScreen('organization')}>Minhas oportunidades</button><button aria-current={view === 'organization-applications' ? 'page' : undefined} onClick={() => openScreen('organization-applications')}>Candidaturas recebidas ({applicationStore.applications.filter(item => item.organization === organizationAccount.name).length})</button><button onClick={() => { setOrganizationAccount(null); openScreen('organization-login'); }}>Sair</button></nav>}
+      {showAccess ? <AccessPage key={needsOrganization ? 'organization' : 'volunteer'} organization={needsOrganization} organizations={[...new Set(allJobs.map(job => job.organization))]} onEnter={person => enterAccount(person, needsOrganization)} onSwitch={() => openScreen(needsOrganization ? 'login' : 'organization-login')} onBack={home} />
+      : view === 'organization-applications' ? <Applications organization={organizationAccount.name} applications={applicationStore.applications.filter(item => item.organization === organizationAccount.name)} onUpdate={applicationStore.update} error={applicationStore.error} />
+      : view === 'applications' ? <Applications applications={myApplications} onUpdate={applicationStore.update} error={applicationStore.error} onSearch={() => runSearch('', '')} />
+      : view === 'organization' ? <OrganizationPage organizationName={organizationAccount.name} jobs={organizationJobs.filter(job => job.organization === organizationAccount.name)} onSave={job => saveOrganizationJob({ ...job, organization: organizationAccount.name })} storageError={storageError} onOpenJob={openSavedJob} /> : accountViews.includes(view) ? <AccountPages jobs={allJobs} view={view} saved={saved} toggleSave={toggleSave} onSearch={() => runSearch('', '')} onOpenJob={openSavedJob} onApplications={() => openScreen('applications')} profile={profile} setProfile={setProfile} preferences={preferences} setPreferences={setPreferences} /> : <>
+      {view === 'home' && <HomeIntro />}
       <div className="search-wrap">
         <form className="search-form" role="search" onSubmit={e => { e.preventDefault(); runSearch(); }}>
           <label className="search-field"><Search size={22} aria-hidden="true" /><span className="sr-only">Atividade, palavras-chave ou ONG</span><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Atividade, palavras-chave ou ONG" /></label>
           <label className="search-field location-field"><MapPin size={22} aria-hidden="true" /><span className="sr-only">Cidade, estado, região ou remoto</span><input value={location} onChange={e => setLocation(e.target.value)} placeholder={'Cidade, estado, região ou “remoto”'} /></label>
-          <button className="primary-button search-button" type="submit">Achar vagas</button>
+          <button className="primary-button search-button" type="submit">Buscar oportunidades <ArrowRight size={18} /></button>
         </form>
       </div>
 
-      {view === 'home' ? <>
-        <section className="welcome" aria-labelledby="welcome-title">
-          <Logo large />
-          <h1 id="welcome-title">Sua próxima vaga começa aqui</h1>
-          <p>Encontre uma oportunidade de voluntariado e faça parte de uma causa.</p>
-          <button className="primary-button start-button" onClick={() => runSearch('', '')}>Começar <ArrowRight size={23} /></button>
-        </section>
-        <section className="trending" aria-label="Explore oportunidades">
-          <details><summary>O que está em alta no Voluntare <ChevronDown size={19} /></summary>
-            <div className="trending-grid">
-              <div><h2>Buscas em alta</h2>{['Educação', 'Meio ambiente', 'Animais', 'Assistência social'].map(term => <button key={term} onClick={() => runSearch(term, '')}>{term} <ChevronRight size={14} /></button>)}</div>
-              <div><h2>Oportunidades em alta</h2>{['Apoio escolar', 'Mentoria', 'Comunicação', 'Doações'].map(term => <button key={term} onClick={() => runSearch(term, '')}>{term} <ChevronRight size={14} /></button>)}</div>
-              <div><h2>Locais em alta</h2>{['Joinville', 'São Paulo', 'Curitiba', 'Remoto'].map(term => <button key={term} onClick={() => runSearch('', term)}>{term} <ChevronRight size={14} /></button>)}</div>
-            </div>
-          </details>
-        </section>
-      </> : <section className="results-container" aria-label="Oportunidades de voluntariado">
+      {view === 'home' ? <HomePage jobs={allJobs} onSearch={runSearch} onOpenJob={openSavedJob} onOrganization={() => openScreen('organization')} saved={saved} onSave={toggleSave} /> : <section className="results-container" aria-label="Oportunidades de voluntariado">
         <div className="filters">
           <label><span>Qual causa você busca?</span><select value={cause} onChange={e => changeFilter('cause', e.target.value)}>{causes.map(item => <option key={item}>{item}</option>)}</select></label>
           <label><span>Formato</span><select value={mode} onChange={e => changeFilter('mode', e.target.value)}>{['Todos os formatos', 'Presencial', 'Remoto', 'Híbrido'].map(item => <option key={item}>{item}</option>)}</select></label>
@@ -199,7 +210,7 @@ export default function App() {
             <div className="results-count"><span>{filtered.length} vagas encontradas</span><span>Página {currentPage} de {pageCount}</span></div>
             {visibleJobs.map(job => <article className={`job-card ${selected?.id === job.id ? 'selected' : ''}`} key={job.id}>
               <button className="job-select" aria-pressed={selected?.id === job.id} onClick={() => { setSelectedId(job.id); setMobileDetail(true); }} aria-label={`Ver detalhes: ${job.title}`}>
-                <span className="job-title">{job.title}</span><span className="organization">{job.organization}</span><span className="job-location">{job.location}</span>
+                <span className="cause-pill">{job.cause}</span><span className="job-title">{job.title}</span><span className="organization">{job.organization}</span><span className="job-location"><MapPin size={14} />{job.location}</span>
                 <span className="tags"><span>{job.mode}</span><span>{job.hours}</span></span>
                 <span className="easy-apply"><ArrowRight size={15} /> Candidate-se pelo Voluntare</span>
                 <span className="job-summary">{job.description}</span><span className="published">{job.published}</span>
@@ -216,7 +227,7 @@ export default function App() {
           {selected && <aside className={`job-detail ${mobileDetail ? 'mobile-visible' : ''}`} aria-label="Detalhes da vaga">
             <button className="text-button back-to-results" onClick={() => setMobileDetail(false)}><ArrowLeft size={18} /> Voltar às vagas</button>
             <div className="detail-header"><h2>{selected.title}</h2><button className="organization-link" onClick={() => info(selected.organization)}>{selected.organization}</button><p>{selected.location}</p>
-              <div className="detail-actions"><button className="primary-button" onClick={() => setModal({ type: 'apply', title: 'Candidatura de demonstração', job: selected })}>Quero me candidatar <ArrowRight size={20} /></button><button className={`icon-button detail-save ${saved.includes(selected.id) ? 'saved' : ''}`} onClick={() => toggleSave(selected.id)} aria-label={saved.includes(selected.id) ? 'Remover vaga dos salvos' : 'Salvar vaga'} aria-pressed={saved.includes(selected.id)}><Bookmark size={21} fill={saved.includes(selected.id) ? 'currentColor' : 'none'} /></button></div>
+              <div className="detail-actions"><button className="primary-button" onClick={() => alreadyApplied ? openScreen('applications') : startApplication(selected)}>{alreadyApplied ? 'Acompanhar candidatura' : 'Quero me candidatar'} <ArrowRight size={20} /></button><button className={`icon-button detail-save ${saved.includes(selected.id) ? 'saved' : ''}`} onClick={() => toggleSave(selected.id)} aria-label={saved.includes(selected.id) ? 'Remover vaga dos salvos' : 'Salvar vaga'} aria-pressed={saved.includes(selected.id)}><Bookmark size={21} fill={saved.includes(selected.id) ? 'currentColor' : 'none'} /></button></div>
             </div>
             <div className="detail-body"><section><h3>Dados da vaga</h3><p className="muted">Veja como você pode contribuir com esta oportunidade.</p><div className="detail-meta"><Clock3 size={20} /><div><strong>Dedicação</strong><span className="detail-tag">{selected.hours}</span></div></div><div className="detail-meta"><Globe2 size={20} /><div><strong>Formato de participação</strong><span className="detail-tag">{selected.mode}</span></div></div></section>
               <section><h3>Localização</h3><p className="inline-icon"><MapPin size={19} /> {selected.location}</p></section>
@@ -232,8 +243,8 @@ export default function App() {
 
     {modal && <Modal title={modal.title} onClose={() => setModal(null)}>
       {modal.type === 'account' ? <><p>Explore as oportunidades e encontre uma causa com a qual você se identifica.</p><button className="primary-button full-width" onClick={() => openScreen('profile')}>Entrar na demonstração <ArrowRight size={20} /></button><button className="text-button full-width" onClick={() => { setModal(null); runSearch('', ''); }}>Continuar sem uma conta</button></>
-      : modal.type === 'apply' ? <><p><strong>{modal.job.title}</strong><br />{modal.job.organization}</p><div className="notice">Nesta versão local, você pode salvar seu interesse neste navegador; nenhum dado ou candidatura será enviado à organização.</div><button className="primary-button full-width" onClick={() => { setSaved(current => current.includes(modal.job.id) ? current : [...current, modal.job.id]); setModal({ type: 'success', title: 'Vaga salva para você' }); }}><Bookmark size={18} /> Salvar meu interesse</button></>
-      : modal.type === 'success' ? <><div className="success-icon"><Check /></div><p>Seu interesse foi salvo neste navegador. A vaga aparece com o marcador preenchido na lista.</p><button className="primary-button full-width" onClick={() => setModal(null)}>Continuar explorando</button></>
+      : modal.type === 'apply' ? <ApplicationForm job={modal.job} profile={profile} error={applicationStore.error} onProfile={() => openScreen('profile')} onSubmit={message => { if (applicationStore.apply(modal.job, profile, message)) setModal({ type: 'success', title: 'Candidatura registrada' }); }} />
+      : modal.type === 'success' ? <><div className="success-icon"><Check /></div><p>Sua candidatura está disponível no painel local da organização e em Minhas candidaturas. Nenhum dado foi enviado para fora deste navegador.</p><button className="primary-button full-width" onClick={() => openScreen('applications')}>Acompanhar candidatura</button><button className="text-button full-width" onClick={() => setModal(null)}>Continuar explorando</button></>
       : <InfoContent jobs={allJobs} title={modal.title} onSearch={(q = '', l = '') => { setModal(null); runSearch(q, l); }} />}
     </Modal>}
   </>;
@@ -241,7 +252,7 @@ export default function App() {
 
 function InfoContent({ title, onSearch, jobs }) {
   if (title === 'País e idioma') return <><p>Você está na versão brasileira do Voluntare.</p><div className="notice inline-icon"><Check size={20} /> Brasil · Português (Brasil)</div></>;
-  if (title === 'Privacidade') return <><p>Esta demonstração não envia seus dados a um servidor. Os identificadores das vagas salvas e os anúncios criados pela área de ONGs ficam no armazenamento local deste navegador.</p><p>Você pode remover uma vaga clicando novamente no marcador ou apagar os dados do site nas configurações do navegador.</p></>;
+  if (title === 'Privacidade') return <><p>Esta demonstração não envia seus dados a um servidor. Vagas salvas, anúncios e candidaturas, incluindo nome, e-mail e apresentação, ficam no armazenamento local deste navegador. Use dados fictícios: os acessos de demonstração não protegem os dados como uma autenticação real.</p><p>As senhas de exemplo não são salvas. Você pode cancelar candidaturas, remover vagas salvas ou apagar os dados do site nas configurações do navegador.</p></>;
   if (title === 'Termos') return <p>O Voluntare está em fase de desenvolvimento. As organizações e oportunidades desta demonstração são fictícias. Não há inscrições reais, pagamentos ou vínculo com o Indeed.</p>;
   if (title === 'Causas') return <div className="modal-links">{causes.slice(1).map(item => <button key={item} onClick={() => onSearch(item)}>{item}<ChevronRight size={18} /></button>)}</div>;
   if (title === 'Conheça as organizações') return <><p>Explore as organizações fictícias que fazem parte desta demonstração. As avaliações estarão disponíveis em uma etapa futura.</p><div className="modal-links">{jobs.slice(0, 5).map(job => <button key={job.id} onClick={() => onSearch(job.organization)}>{job.organization}<ChevronRight size={18} /></button>)}</div></>;

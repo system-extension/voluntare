@@ -1,0 +1,35 @@
+import { useEffect, useState } from 'react';
+import { ArrowRight, ClipboardList, MapPin, Users } from 'lucide-react';
+
+const KEY = 'voluntare-applications-v1';
+export const applicationStatuses = ['Recebida', 'Em análise', 'Selecionada', 'Não selecionada', 'Cancelada'];
+function readApplications() {
+  try { const data = JSON.parse(localStorage.getItem(KEY) || '[]'); return Array.isArray(data) ? data.filter(item => item && typeof item.id === 'string' && typeof item.email === 'string' && typeof item.name === 'string' && typeof item.organization === 'string' && typeof item.jobTitle === 'string' && Number.isSafeInteger(item.jobId) && applicationStatuses.includes(item.status)) : []; } catch { return []; }
+}
+export function useApplications() {
+  const [applications, setApplications] = useState(readApplications);
+  useEffect(() => { const sync = event => { if (event.key === KEY || event.key === null) setApplications(readApplications()); }; window.addEventListener('storage', sync); return () => window.removeEventListener('storage', sync); }, []);
+  const [error, setError] = useState('');
+  function persist(next) {
+    try { localStorage.setItem(KEY, JSON.stringify(next)); setApplications(next); setError(''); return true; }
+    catch { setError('Não foi possível salvar a candidatura. Verifique o armazenamento do navegador e tente novamente.'); return false; }
+  }
+  function apply(job, person, message) {
+    if (applications.some(item => item.jobId === job.id && item.email === person.email && item.status !== 'Cancelada')) { setError('Você já se candidatou a esta oportunidade. Acompanhe em Minhas candidaturas.'); return false; }
+    return persist([{ id: crypto.randomUUID(), jobId: job.id, jobTitle: job.title, organization: job.organization, location: job.location, name: person.name, email: person.email, about: person.about || '', message: message.trim(), createdAt: new Date().toISOString(), status: 'Recebida' }, ...applications]);
+  }
+  function update(id, status) { return applicationStatuses.includes(status) && persist(applications.map(item => item.id === id ? { ...item, status } : item)); }
+  return { applications, error, apply, update };
+}
+
+export function ApplicationForm({ job, profile, onSubmit, error, onProfile }) {
+  const [message, setMessage] = useState('');
+  return <form className="application-form" onSubmit={event => { event.preventDefault(); if (message.trim().length < 10) return; onSubmit(message); }}><div className="application-job"><span className="cause-pill">{job.cause}</span><h3>{job.title}</h3><p>{job.organization}</p></div><div className="candidate-summary"><strong>{profile.name}</strong><span>{profile.email}</span><button type="button" className="text-button" onClick={onProfile}>Editar meu perfil</button></div><label>Por que você quer participar?<textarea required minLength={10} maxLength={2000} rows={4} value={message} onChange={event => setMessage(event.target.value)} placeholder="Conte sobre seu interesse, suas habilidades e disponibilidade." /></label><small>{message.length}/2000 caracteres · mínimo de 10</small><label className="application-consent"><input type="checkbox" required />Entendo que esta candidatura e meus dados ficarão salvos neste navegador e disponíveis no painel local da organização.</label>{error && <p className="ong-error-banner" role="alert">{error}</p>}<button type="submit" className="primary-button full-width" disabled={message.trim().length < 10}>Confirmar candidatura <ArrowRight size={18} /></button><p className="small-note">Simulação local. Nenhuma organização receberá uma notificação externa.</p></form>;
+}
+
+export default function Applications({ organization, applications, onUpdate, error, onSearch }) {
+  const [status, setStatus] = useState('Todas');
+  const [query, setQuery] = useState('');
+  const filtered = applications.filter(item => (status === 'Todas' || item.status === status) && `${item.name} ${item.jobTitle} ${item.organization}`.toLocaleLowerCase('pt-BR').includes(query.toLocaleLowerCase('pt-BR')));
+  return <section className="applications-page"><div className="section-heading"><div><span className="eyebrow">{organization ? 'Pessoas que querem contribuir' : 'Sua jornada de voluntariado'}</span><h1>{organization ? 'Candidaturas recebidas' : 'Minhas candidaturas'}</h1><p>{organization ? `Acompanhe os interessados nas oportunidades de ${organization}.` : 'Acompanhe o status das oportunidades às quais você se candidatou.'}</p></div><span className="application-total"><Users size={18} />{applications.length} candidatura(s)</span></div><p className="ong-local-note">Dados desta demonstração ficam apenas neste navegador. Os status são compartilhados entre os painéis locais.</p><div className="application-filters"><label>Buscar<input value={query} onChange={event => setQuery(event.target.value)} placeholder={organization ? 'Nome da pessoa ou da vaga' : 'Vaga ou organização'} /></label><label>Status<select value={status} onChange={event => setStatus(event.target.value)}>{['Todas', ...applicationStatuses].map(value => <option key={value}>{value}</option>)}</select></label></div>{error && <p className="ong-error-banner" role="alert">{error}</p>}{!filtered.length ? <div className="empty-state"><ClipboardList size={40} /><h2>{applications.length ? 'Nenhuma candidatura neste filtro' : 'As próximas conexões começam aqui'}</h2><p>{organization ? 'As candidaturas feitas neste navegador para sua organização aparecerão nesta área.' : 'Encontre uma oportunidade e envie sua primeira candidatura.'}</p>{!organization && <button className="primary-button" onClick={onSearch}>Explorar oportunidades</button>}</div> : <div className="application-list">{filtered.map(item => <article className="application-card" key={item.id}><div className="application-card-top"><span className={`application-status status-${applicationStatuses.indexOf(item.status)}`}>{item.status}</span><time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleDateString('pt-BR')}</time></div><h2>{item.jobTitle}</h2><p className="application-organization">{item.organization}</p><p className="inline-icon"><MapPin size={15} />{item.location}</p>{organization && <div className="candidate-summary"><strong>{item.name}</strong><span>{item.email}</span>{item.about && <p>{item.about}</p>}</div>}<details><summary>{organization ? 'Ver apresentação da pessoa' : 'Ver minha apresentação'}</summary><p className="application-message">{item.message}</p></details><div className="application-card-actions">{organization ? <label>Status da candidatura<select value={item.status} disabled={item.status === 'Cancelada'} onChange={event => onUpdate(item.id, event.target.value)}>{applicationStatuses.filter(value => value !== 'Cancelada' || item.status === 'Cancelada').map(value => <option key={value}>{value}</option>)}</select></label> : item.status !== 'Cancelada' && <button className="text-button" onClick={() => onUpdate(item.id, 'Cancelada')}>Cancelar candidatura</button>}{item.status === 'Cancelada' && <span className="small-note">Cancelada pela pessoa voluntária.</span>}</div></article>)}</div>}</section>;
+}

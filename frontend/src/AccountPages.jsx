@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { ArrowRight, Bell, Bookmark, CalendarDays, ChevronRight, Clock3, Eye, FileText, Globe2, Heart, MapPin, MessageSquare, Pencil, Plus, Upload, X } from 'lucide-react';
+import { ArrowRight, Bell, Bookmark, CalendarDays, ChevronRight, Clock3, Eye, FileText, Globe2, Heart, MapPin, Pencil, Plus, X } from 'lucide-react';
+import ExperienceSection from './ExperienceSection.jsx';
 
-export default function AccountPages({ jobs, view, saved, toggleSave, onSearch, onOpenJob, profile, setProfile, preferences, setPreferences }) {
+export default function AccountPages({ jobs, view, saved, toggleSave, onSearch, onOpenJob, onApplications, profile, setProfile, preferences, setPreferences }) {
   if (view === 'profile' || view === 'preferences') return <ProfilePage key={view} preferences={view === 'preferences'} profile={profile} setProfile={setProfile} settings={preferences} setSettings={setPreferences} />;
-  if (view === 'myjobs') return <MyJobs jobs={jobs} saved={saved} toggleSave={toggleSave} onSearch={onSearch} onOpenJob={onOpenJob} />;
-  if (view === 'messages') return <Messages />;
+  if (view === 'myjobs') return <><MyJobs jobs={jobs} saved={saved} toggleSave={toggleSave} onSearch={onSearch} onOpenJob={onOpenJob} /><div className="saved-applications-link"><button className="text-button" onClick={onApplications}>Acompanhar minhas candidaturas <ArrowRight size={18} /></button></div></>;
   return <section className="notifications-page"><div className="empty-icon"><Bell size={62} strokeWidth={1.5} /></div><h1>Não há novas notificações.<br />Verifique mais tarde.</h1><p>Aqui você encontrará novidades sobre suas candidaturas e informações para ajudar na sua jornada de voluntariado.</p><button className="primary-button" onClick={onSearch}>Encontrar vagas</button><span className="account-demo-note">Demonstração local · notificações ainda não conectadas.</span></section>;
 }
 
@@ -18,8 +18,6 @@ function ProfilePage({ preferences, profile, setProfile, settings, setSettings }
   const setValues = value => setSettings(current => ({ ...current, values: value }));
   const ready = settings.ready;
   const setReady = value => setSettings(current => ({ ...current, ready: value }));
-  const [fileName, setFileName] = useState('');
-  const [fileError, setFileError] = useState('');
   const initials = profile.name.split(' ').filter(Boolean).slice(0, 2).map(word => word[0]).join('').toUpperCase() || 'V';
   const preferenceRows = [
     ['Causas', Heart, ['Educação', 'Meio ambiente', 'Assistência social', 'Animais', 'Comunicação']],
@@ -41,14 +39,14 @@ function ProfilePage({ preferences, profile, setProfile, settings, setSettings }
     </form>}
     <div className="page-tabs" aria-label="Seções do perfil"><button className={tab === 'resume' ? 'active' : ''} aria-pressed={tab === 'resume'} onClick={() => setTab('resume')}>Perfil de voluntariado</button><button className={tab === 'preferences' ? 'active' : ''} aria-pressed={tab === 'preferences'} onClick={() => setTab('preferences')}>Preferências</button></div>
     {tab === 'resume' ? <div className="resume-content"><div className="resume-card"><div className="resume-card-heading"><FileText size={24} /><div><strong>Perfil Voluntare</strong><span>Suas habilidades podem fazer a diferença</span></div></div><label className="about-label" htmlFor="profile-about">Sobre você e suas habilidades</label><textarea id="profile-about" value={profile.about} onChange={event => setProfile({ ...profile, about: event.target.value })} placeholder="Conte quais atividades você gostaria de desenvolver..." maxLength={1500} /><p className="small-note">Rascunho mantido somente enquanto esta página estiver aberta.</p></div>
-      <label className="upload-card"><Upload size={26} /><strong>{fileName || 'Adicionar um currículo'}</strong><span>Arquivo PDF, .doc ou .docx com menos de 5 MB.</span><input type="file" accept=".pdf,.doc,.docx" onChange={event => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 5 * 1024 * 1024 || !/\.(pdf|docx?)$/i.test(file.name)) { setFileError('Escolha um PDF, DOC ou DOCX de até 5 MB.'); event.target.value = ''; return; } setFileName(file.name); setFileError(''); }} /></label>{fileError && <p role="alert" className="file-error">{fileError}</p>}{fileName && <button className="text-button" onClick={() => setFileName('')}>Remover arquivo selecionado</button>}<p className="small-note">Nenhum arquivo é enviado ou armazenado. A seleção serve apenas para visualizar a interface.</p>
+      <ExperienceSection key={profile.email.toLowerCase()} email={profile.email} />
     </div> : <div className="preferences-content"><p className="privacy-banner"><Eye size={19} /> Suas preferências ajudam a encontrar oportunidades.</p>{preferenceRows.map(([label, Icon, options]) => <div className="preference-row" key={label}><div className="preference-heading"><Icon size={20} /><h2>{label}</h2><button className="icon-button" aria-label={`Editar ${label.toLowerCase()}`} onClick={() => setPreferenceEditor(preferenceEditor === label ? null : label)}>{preferenceEditor === label ? <X size={19} /> : <Plus size={20} />}</button></div>{preferenceEditor === label ? <label className="preference-select"><span className="sr-only">{label}</span><select value={values[label]} onChange={event => { setValues({ ...values, [label]: event.target.value }); setPreferenceEditor(null); }}>{options.map(option => <option key={option}>{option}</option>)}</select></label> : <span className="preference-value">{values[label]}</span>}</div>)}<div className="availability"><h2>Disponibilidade</h2><div><div><strong>Estou disponível para começar</strong><p>Indique se você pode participar de uma ação agora.</p></div><button role="switch" aria-checked={ready} aria-label="Estou disponível para começar" className={`switch ${ready ? 'on' : ''}`} onClick={() => setReady(!ready)}><span /></button></div></div></div>}
   </section>;
 }
 
 function MyJobs({ jobs, saved, toggleSave, onSearch, onOpenJob }) {
   const [tab, setTab] = useState('Salvas');
-  const tabs = ['Salvas', 'Candidaturas feitas', 'Participações', 'Arquivo'];
+  const tabs = ['Salvas'];
   const savedJobs = jobs.filter(job => saved.includes(job.id));
   const title = { Salvas: 'Nenhuma vaga salva', 'Candidaturas feitas': 'Nenhuma candidatura', Participações: 'Nenhuma participação confirmada', Arquivo: 'Nenhuma vaga arquivada' };
   return <section className="myjobs-page"><h1>Minhas vagas</h1><div className="page-tabs myjobs-tabs" aria-label="Etapas das vagas">{tabs.map(item => <button key={item} className={tab === item ? 'active' : ''} aria-pressed={tab === item} onClick={() => setTab(item)}>{item !== 'Arquivo' && <span>{item === 'Salvas' ? savedJobs.length : 0}</span>}{item}</button>)}</div>
@@ -57,7 +55,3 @@ function MyJobs({ jobs, saved, toggleSave, onSearch, onOpenJob }) {
   </section>;
 }
 
-function Messages() {
-  const [folder, setFolder] = useState('Caixa de entrada');
-  return <section className="messages-page"><aside className="message-sidebar"><div><h1>Mensagens</h1><span className="preview-badge">Prévia</span></div><label><span className="sr-only">Pasta de mensagens</span><select value={folder} onChange={event => setFolder(event.target.value)}><option>Caixa de entrada</option><option>Arquivadas</option><option>Spam</option></select></label></aside><div className="message-content"><div className="empty-icon"><MessageSquare size={64} strokeWidth={1.5} /></div><h2>{folder === 'Caixa de entrada' ? 'Bem-vindo às Mensagens' : `Nenhuma mensagem em ${folder.toLowerCase()}`}</h2><p>Quando uma ONG entrar em contato com você, as conversas aparecerão aqui.</p><span className="account-demo-note">Mensagens ainda não conectadas nesta demonstração.</span></div></section>;
-}
