@@ -254,8 +254,16 @@ Além dos índices criados pelas chaves primárias e pelas restrições únicas:
 
 | Arquivo | Conteúdo |
 |---|---|
-| `V1__schema_inicial.sql` | Todas as tabelas, restrições e índices, mais o parâmetro `prazo_devolucao_vaga_horas = 48` |
-| `V2__carga_demonstracao.sql` | Massa de demonstração: 2 ONGs, gestores, coordenadores (um inativo), 6 voluntários, 10 habilidades, 8 vagas em todos os status, candidaturas, participações e o histórico coerente. Datas relativas ao dia da migração. Senha de todos: `Voluntare@2026` |
+| `V1__organizacao_e_usuarios.sql` | `organizacao`, `usuario` e `perfil_voluntario` |
+| `V2__habilidades.sql` | `habilidade` e `voluntario_habilidade` |
+| `V3__oportunidades.sql` | `oportunidade` |
+| `V4__candidaturas_e_participacoes.sql` | `candidatura` e `participacao` |
+| `V5__historico_status.sql` | `historico_status` |
+| `V6__parametros.sql` | `parametro`, com `prazo_devolucao_vaga_horas = 48` |
+| `V7__busca_sem_acento.sql` | Extensão `unaccent` e a função `sem_acento()`, usada na busca de oportunidades |
+| `V8__carga_demonstracao.sql` | Massa de demonstração: 2 ONGs, gestores, coordenadores (um inativo), 6 voluntários, 10 habilidades, 8 vagas em todos os status, candidaturas, participações e o histórico coerente. Datas relativas ao dia da migração. Senha de todos: `Voluntare@2026` |
+
+Uma migração por domínio, na ordem das dependências (as FKs só apontam para tabelas de migrações anteriores). Migração aplicada não se edita: qualquer mudança entra numa nova versão.
 
 As restrições e a coerência da carga são conferidas por `RestricoesBancoTest` e `CargaDemonstracaoTest`.
 
