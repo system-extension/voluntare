@@ -108,6 +108,8 @@ cd backend
 
 Para usar outro banco, defina `DB_URL`, `DB_USER` e `DB_PASSWORD`.
 
+Com o backend rodando, a documentação da API fica em http://localhost:8080/swagger-ui.html.
+
 ### Frontend
 
 ```
