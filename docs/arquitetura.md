@@ -46,7 +46,7 @@ Monólito modular: um pacote por módulo dentro de `br.univille.voluntare` e, de
 | `historico` | Registro das mudanças de status em `historico_status` | service, repository, entity |
 | `parametro` | Parâmetros do sistema, como o prazo de devolução da vaga. Mudam só por migração | service, repository, entity |
 | `dashboard` | Indicadores do painel da ONG, calculados por consulta | controller, service, dto |
-| `shared` | Erros, configuração e utilitários | config, exception, util |
+| `shared` | Erros, configuração, utilitários e DTOs comuns (como a página de resultados) | config, dto, exception, util |
 
 Regras de negócio ficam nos services. Controllers só recebem a requisição, validam e chamam o service. Entidades não são expostas na API, só DTOs.
 
