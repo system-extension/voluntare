@@ -1,0 +1,53 @@
+package br.univille.voluntare.organizacao.entity;
+
+import java.time.Instant;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+/** ONG que publica oportunidades (tabela criada na V1). Por enquanto só leitura. */
+@Entity
+@Table(name = "organizacao")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Organizacao {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 150)
+    private String nome;
+
+    private String descricao;
+
+    @Column(nullable = false, length = 100)
+    private String cidade;
+
+    // CHAR(2) no banco. Sem o JdbcTypeCode o Hibernate espera VARCHAR e o ddl-auto: validate falha.
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(nullable = false, length = 2)
+    private String uf;
+
+    @Column(nullable = false, length = 160)
+    private String email;
+
+    @Column(length = 20)
+    private String telefone;
+
+    @Column(nullable = false)
+    private boolean ativa;
+
+    @Column(name = "criado_em", nullable = false, updatable = false)
+    private Instant criadoEm;
+}
