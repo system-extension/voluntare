@@ -60,8 +60,27 @@ public class HistoricoStatus {
 
     public static HistoricoStatus daOportunidade(UUID oportunidadeId, String anterior, String novo,
             Usuario alteradoPor, String observacao) {
-        HistoricoStatus linha = new HistoricoStatus();
+        HistoricoStatus linha = nova(anterior, novo, alteradoPor, observacao);
         linha.oportunidadeId = oportunidadeId;
+        return linha;
+    }
+
+    public static HistoricoStatus daCandidatura(UUID candidaturaId, String anterior, String novo,
+            Usuario alteradoPor, String observacao) {
+        HistoricoStatus linha = nova(anterior, novo, alteradoPor, observacao);
+        linha.candidaturaId = candidaturaId;
+        return linha;
+    }
+
+    public static HistoricoStatus daParticipacao(UUID participacaoId, String anterior, String novo,
+            Usuario alteradoPor, String observacao) {
+        HistoricoStatus linha = nova(anterior, novo, alteradoPor, observacao);
+        linha.participacaoId = participacaoId;
+        return linha;
+    }
+
+    private static HistoricoStatus nova(String anterior, String novo, Usuario alteradoPor, String observacao) {
+        HistoricoStatus linha = new HistoricoStatus();
         linha.statusAnterior = anterior;
         linha.statusNovo = novo;
         linha.alteradoPor = alteradoPor;

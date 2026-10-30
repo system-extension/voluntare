@@ -20,7 +20,6 @@ import br.univille.voluntare.shared.exception.AcessoNegadoException;
 import br.univille.voluntare.shared.exception.ConflitoException;
 import br.univille.voluntare.shared.exception.DadosInvalidosException;
 import br.univille.voluntare.shared.exception.ErroResponse.CampoErro;
-import br.univille.voluntare.shared.exception.RecursoNaoEncontradoException;
 import br.univille.voluntare.usuario.entity.Papel;
 import br.univille.voluntare.usuario.entity.Usuario;
 import br.univille.voluntare.usuario.repository.UsuarioRepository;
@@ -30,10 +29,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * Área da organização: o gestor cria vagas; o responsável pela vaga (ou o gestor) edita, publica,
  * encerra e cancela. Toda mudança de status grava o histórico na mesma transação.
- *
- * Acesso (docs/der/der.md, "Regras validadas no service"):
- * - vaga de outra organização responde 404, para não revelar que ela existe;
- * - coordenador só opera as vagas pelas quais responde; gestor opera todas da organização.
+ * Quem pode operar cada vaga está em AcessoOportunidade.
  */
 @Service
 @RequiredArgsConstructor
@@ -44,6 +40,7 @@ public class GestaoOportunidadeService {
     private final UsuarioRepository usuarios;
     private final UsuarioLogadoService logado;
     private final HistoricoService historico;
+    private final AcessoOportunidade acesso;
 
     // ---------- leitura ----------
 
@@ -158,24 +155,14 @@ public class GestaoOportunidadeService {
 
     // ---------- regras de acesso ----------
 
-    /** Quem chama é gestor ou coordenador ativo. O controller já barra voluntário; aqui é a segunda trava. */
     private Usuario equipe(UUID autorId) {
         Usuario autor = logado.carregar(autorId);
-        if (autor.getOrganizacao() == null) {
-            throw new AcessoNegadoException("Área exclusiva da equipe da organização.");
-        }
+        acesso.exigirEquipe(autor);
         return autor;
     }
 
     private Oportunidade paraOperar(Usuario autor, UUID id) {
-        Oportunidade oportunidade = oportunidades.findComRelacoesById(id)
-                .filter(o -> o.getOrganizacao().getId().equals(autor.getOrganizacao().getId()))
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Oportunidade não encontrada."));
-        boolean responde = oportunidade.getResponsavel().getId().equals(autor.getId());
-        if (autor.getPapel() != Papel.GESTOR && !responde) {
-            throw new AcessoNegadoException("Só o responsável pela vaga ou o gestor da organização podem alterá-la.");
-        }
-        return oportunidade;
+        return acesso.paraOperar(autor, id);
     }
 
     /** Gestor ou coordenador ativo da mesma organização (a FK composta garante a organização no banco também). */

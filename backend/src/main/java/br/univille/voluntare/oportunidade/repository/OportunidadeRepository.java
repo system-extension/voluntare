@@ -13,11 +13,13 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import br.univille.voluntare.oportunidade.entity.Oportunidade;
 import br.univille.voluntare.oportunidade.entity.StatusOportunidade;
+import jakarta.persistence.LockModeType;
 
 public interface OportunidadeRepository
         extends JpaRepository<Oportunidade, UUID>, JpaSpecificationExecutor<Oportunidade> {
@@ -41,6 +43,15 @@ public interface OportunidadeRepository
     @EntityGraph(attributePaths = {"organizacao", "responsavel"})
     List<Oportunidade> findByOrganizacaoIdAndResponsavelIdOrderByCriadoEmDescIdDesc(UUID organizacaoId,
             UUID responsavelId);
+
+    /**
+     * SELECT ... FOR UPDATE: trava a linha da vaga até o fim da transação.
+     * Dois aceites ao mesmo tempo na mesma vaga ficam em fila; o segundo só conta as vagas
+     * depois que o primeiro gravou, e não passa do limite (regra 3).
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT o FROM Oportunidade o WHERE o.id = :id")
+    Optional<Oportunidade> travar(@Param("id") UUID id);
 
     /**
      * Vagas ocupadas por oportunidade, numa consulta só para a lista inteira.
