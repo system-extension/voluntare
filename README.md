@@ -109,6 +109,9 @@ cd backend
 Para usar outro banco, defina `DB_URL`, `DB_USER` e `DB_PASSWORD`.
 
 Com o backend rodando, a documentação da API fica em http://localhost:8080/swagger-ui.html.
+Para chamar as rotas protegidas pelo Swagger, faça login em `POST /api/auth/login` (ex.: `ana@novoscaminhos.example.org`, senha `Voluntare@2026`), copie o `token` e cole em **Authorize**.
+
+Fora da máquina local, defina `JWT_SEGREDO` (no mínimo 32 caracteres aleatórios).
 
 ### Frontend
 

@@ -20,3 +20,10 @@ spring:
 
   flyway:
     locations: classpath:db/migration
+
+# Token de login (JWT). Em qualquer ambiente fora da máquina local, defina JWT_SEGREDO
+# com no mínimo 32 caracteres aleatórios. O padrão abaixo serve só para desenvolvimento.
+voluntare:
+  jwt:
+    segredo: ${JWT_SEGREDO:voluntare-dev-segredo-local-nao-usar-em-producao}
+    validade: 8h

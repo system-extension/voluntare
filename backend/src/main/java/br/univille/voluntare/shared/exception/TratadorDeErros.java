@@ -5,6 +5,8 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -23,6 +25,33 @@ public class TratadorDeErros {
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity<ErroResponse> naoEncontrado(RecursoNaoEncontradoException e) {
         return resposta(HttpStatus.NOT_FOUND, ErroResponse.de(404, e.getMessage()));
+    }
+
+    @ExceptionHandler(ConflitoException.class)
+    public ResponseEntity<ErroResponse> conflito(ConflitoException e) {
+        return resposta(HttpStatus.CONFLICT, ErroResponse.de(409, e.getMessage()));
+    }
+
+    @ExceptionHandler(NaoAutenticadoException.class)
+    public ResponseEntity<ErroResponse> naoAutenticado(NaoAutenticadoException e) {
+        return resposta(HttpStatus.UNAUTHORIZED, ErroResponse.de(401, e.getMessage()));
+    }
+
+    @ExceptionHandler(AcessoNegadoException.class)
+    public ResponseEntity<ErroResponse> acessoNegado(AcessoNegadoException e) {
+        return resposta(HttpStatus.FORBIDDEN, ErroResponse.de(403, e.getMessage()));
+    }
+
+    /** @PreAuthorize recusado dentro do controller. Sem este handler cairia no 500 do inesperado. */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErroResponse> semPermissao(AccessDeniedException e) {
+        return resposta(HttpStatus.FORBIDDEN, ErroResponse.de(403, "Você não tem permissão para esta ação."));
+    }
+
+    /** JSON malformado ou com tipo errado no corpo da requisição. */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErroResponse> corpoInvalido(HttpMessageNotReadableException e) {
+        return resposta(HttpStatus.BAD_REQUEST, ErroResponse.de(400, "Corpo da requisição inválido."));
     }
 
     /** Parâmetros ou corpo com @Valid que não passaram na validação, ou com tipo errado (pagina=abc). */

@@ -104,10 +104,15 @@
             <scope>test</scope>
         </dependency>
 
-        <!--
-            Entra em feature/setup-seguranca:
-              spring-boot-starter-security
-        -->
+        <!-- Segurança: login com JWT. O resource server valida o token; o encoder (Nimbus) vem junto -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
