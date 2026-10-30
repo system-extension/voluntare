@@ -2,6 +2,7 @@ package br.univille.voluntare.organizacao.entity;
 
 import java.time.Instant;
 
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -15,7 +16,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/** ONG que publica oportunidades (tabela criada na V1). Por enquanto só leitura. */
+/** ONG que publica oportunidades (tabela criada na V1). Nasce no autocadastro, junto com o gestor. */
 @Entity
 @Table(name = "organizacao")
 @Getter
@@ -48,6 +49,17 @@ public class Organizacao {
     @Column(nullable = false)
     private boolean ativa;
 
+    @CreationTimestamp
     @Column(name = "criado_em", nullable = false, updatable = false)
     private Instant criadoEm;
+
+    public Organizacao(String nome, String descricao, String cidade, String uf, String email, String telefone) {
+        this.nome = nome;
+        this.descricao = descricao;
+        this.cidade = cidade;
+        this.uf = uf;
+        this.email = email;
+        this.telefone = telefone;
+        this.ativa = true;
+    }
 }
