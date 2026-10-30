@@ -7,13 +7,13 @@
 -- =========================================================
 
 CREATE TABLE historico_status (
-    id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    oportunidade_id  BIGINT,
-    candidatura_id   BIGINT,
-    participacao_id  BIGINT,
+    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    oportunidade_id  UUID,
+    candidatura_id   UUID,
+    participacao_id  UUID,
     status_anterior  VARCHAR(20),
     status_novo      VARCHAR(20)  NOT NULL,
-    alterado_por     BIGINT       NOT NULL,
+    alterado_por     UUID         NOT NULL,
     alterado_em      TIMESTAMPTZ  NOT NULL DEFAULT now(),
     observacao       VARCHAR(500),
     CONSTRAINT fk_hist_oportunidade FOREIGN KEY (oportunidade_id) REFERENCES oportunidade (id) ON DELETE RESTRICT,

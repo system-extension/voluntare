@@ -1,5 +1,7 @@
 package br.univille.voluntare.voluntario.entity;
 
+import java.util.UUID;
+
 import br.univille.voluntare.usuario.entity.Usuario;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -25,7 +27,7 @@ public class PerfilVoluntario {
 
     @Id
     @Column(name = "usuario_id")
-    private Long usuarioId;
+    private UUID usuarioId;
 
     @MapsId
     @OneToOne(fetch = FetchType.LAZY, optional = false)

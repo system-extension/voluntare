@@ -7,13 +7,13 @@
 -- =========================================================
 
 CREATE TABLE candidatura (
-    id               BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    oportunidade_id  BIGINT      NOT NULL,
-    voluntario_id    BIGINT      NOT NULL,
+    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    oportunidade_id  UUID        NOT NULL,
+    voluntario_id    UUID        NOT NULL,
     status           VARCHAR(20) NOT NULL DEFAULT 'PENDENTE',
     criado_em        TIMESTAMPTZ NOT NULL DEFAULT now(),
     decidido_em      TIMESTAMPTZ,
-    decidido_por     BIGINT,
+    decidido_por     UUID,
     CONSTRAINT fk_candidatura_oportunidade FOREIGN KEY (oportunidade_id) REFERENCES oportunidade (id) ON DELETE RESTRICT,
     CONSTRAINT fk_candidatura_voluntario FOREIGN KEY (voluntario_id) REFERENCES perfil_voluntario (usuario_id) ON DELETE RESTRICT,
     CONSTRAINT fk_candidatura_decidido_por FOREIGN KEY (decidido_por) REFERENCES usuario (id) ON DELETE RESTRICT,
@@ -37,12 +37,12 @@ CREATE INDEX ix_candidatura_decidido_por ON candidatura (decidido_por);
 -- =========================================================
 
 CREATE TABLE participacao (
-    id                BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    candidatura_id    BIGINT       NOT NULL,
+    id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    candidatura_id    UUID         NOT NULL,
     status            VARCHAR(20)  NOT NULL DEFAULT 'CONFIRMADA',
     horas_realizadas  NUMERIC(5,2),
     registrado_em     TIMESTAMPTZ,
-    registrado_por    BIGINT,
+    registrado_por    UUID,
     cancelado_em      TIMESTAMPTZ,
     CONSTRAINT fk_participacao_candidatura FOREIGN KEY (candidatura_id) REFERENCES candidatura (id) ON DELETE RESTRICT,
     CONSTRAINT fk_participacao_registrado_por FOREIGN KEY (registrado_por) REFERENCES usuario (id) ON DELETE RESTRICT,

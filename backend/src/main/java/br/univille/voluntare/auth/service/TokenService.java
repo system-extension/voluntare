@@ -38,7 +38,7 @@ public class TokenService {
                 .subject(usuario.getId().toString())
                 .claim(SegurancaConfig.CLAIM_PAPEL, usuario.getPapel().name());
         if (usuario.getOrganizacao() != null) {
-            claims.claim(SegurancaConfig.CLAIM_ORGANIZACAO, usuario.getOrganizacao().getId());
+            claims.claim(SegurancaConfig.CLAIM_ORGANIZACAO, usuario.getOrganizacao().getId().toString());
         }
         JwsHeader cabecalho = JwsHeader.with(MacAlgorithm.HS256).build();
         String valor = encoder.encode(JwtEncoderParameters.from(cabecalho, claims.build())).getTokenValue();

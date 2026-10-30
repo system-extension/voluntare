@@ -1,5 +1,7 @@
 package br.univille.voluntare.oportunidade.dto;
 
+import java.util.UUID;
+
 import br.univille.voluntare.oportunidade.entity.Causa;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -13,7 +15,7 @@ public record FiltroOportunidades(
         String texto,
         String local,
         Causa causa,
-        Long organizacaoId,
+        UUID organizacaoId,
         @Min(value = 1, message = "A página começa em 1.")
         Integer pagina,
         @Min(value = 1, message = "O tamanho da página vai de 1 a 50.")

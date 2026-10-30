@@ -21,7 +21,7 @@ erDiagram
     PARTICIPACAO |o--o{ HISTORICO_STATUS : "tem"
 
     ORGANIZACAO {
-        bigint id PK
+        uuid id PK
         varchar nome UK "único por lower(nome)"
         text descricao
         varchar cidade
@@ -32,8 +32,8 @@ erDiagram
         timestamptz criado_em
     }
     USUARIO {
-        bigint id PK
-        bigint organizacao_id FK "obrigatória em GESTOR e COORDENADOR, nula em VOLUNTARIO"
+        uuid id PK
+        uuid organizacao_id FK "obrigatória em GESTOR e COORDENADOR, nula em VOLUNTARIO"
         varchar nome
         varchar email UK "único por lower(email)"
         varchar senha_hash
@@ -42,24 +42,24 @@ erDiagram
         timestamptz criado_em
     }
     PERFIL_VOLUNTARIO {
-        bigint usuario_id PK, FK
+        uuid usuario_id PK, FK
         varchar telefone
         varchar cidade
         text disponibilidade
     }
     HABILIDADE {
-        bigint id PK
+        uuid id PK
         varchar nome UK
     }
     VOLUNTARIO_HABILIDADE {
-        bigint voluntario_id PK, FK
-        bigint habilidade_id PK, FK
+        uuid voluntario_id PK, FK
+        uuid habilidade_id PK, FK
         varchar tipo "HABILIDADE, INTERESSE"
     }
     OPORTUNIDADE {
-        bigint id PK
-        bigint organizacao_id FK
-        bigint responsavel_id FK "gestor ou coordenador da mesma organização"
+        uuid id PK
+        uuid organizacao_id FK
+        uuid responsavel_id FK "gestor ou coordenador da mesma organização"
         varchar titulo
         text descricao "obrigatórios fora de RASCUNHO e CANCELADA"
         text atividades
@@ -75,31 +75,31 @@ erDiagram
         timestamptz criado_em
     }
     CANDIDATURA {
-        bigint id PK
-        bigint oportunidade_id FK
-        bigint voluntario_id FK
+        uuid id PK
+        uuid oportunidade_id FK
+        uuid voluntario_id FK
         varchar status "PENDENTE, ACEITA, REJEITADA, CANCELADA"
         timestamptz criado_em
         timestamptz decidido_em "só em ACEITA ou REJEITADA"
-        bigint decidido_por FK "só em ACEITA ou REJEITADA"
+        uuid decidido_por FK "só em ACEITA ou REJEITADA"
     }
     PARTICIPACAO {
-        bigint id PK
-        bigint candidatura_id FK, UK
+        uuid id PK
+        uuid candidatura_id FK, UK
         varchar status "CONFIRMADA, PRESENTE, AUSENTE, CANCELADA, CANCELADA_TARDIA"
         decimal horas_realizadas "nula ou maior que 0, obrigatória em PRESENTE"
         timestamptz registrado_em "só em PRESENTE ou AUSENTE"
-        bigint registrado_por FK "só em PRESENTE ou AUSENTE"
+        uuid registrado_por FK "só em PRESENTE ou AUSENTE"
         timestamptz cancelado_em "só em CANCELADA e CANCELADA_TARDIA"
     }
     HISTORICO_STATUS {
-        bigint id PK
-        bigint oportunidade_id FK "só uma das três FKs preenchida"
-        bigint candidatura_id FK
-        bigint participacao_id FK
+        uuid id PK
+        uuid oportunidade_id FK "só uma das três FKs preenchida"
+        uuid candidatura_id FK
+        uuid participacao_id FK
         varchar status_anterior "nulo só na criação"
         varchar status_novo
-        bigint alterado_por FK
+        uuid alterado_por FK
         timestamptz alterado_em
         varchar observacao
     }
@@ -250,6 +250,10 @@ Além dos índices criados pelas chaves primárias e pelas restrições únicas:
 | `historico_status` | `oportunidade_id`, `candidatura_id`, `participacao_id` (parciais, onde não são nulos) | Buscar o histórico de um registro |
 | `historico_status` | `alterado_por` | FK para `usuario` |
 
+## Chaves
+
+Todas as chaves primárias são UUID (D-21). O backend gera UUID v7, que começa pelo instante da criação e por isso mantém os índices em ordem. O banco tem `DEFAULT gen_random_uuid()` para inserções feitas direto no SQL.
+
 ## Migrações
 
 | Arquivo | Conteúdo |
@@ -261,7 +265,7 @@ Além dos índices criados pelas chaves primárias e pelas restrições únicas:
 | `V5__historico_status.sql` | `historico_status` |
 | `V6__parametros.sql` | `parametro`, com `prazo_devolucao_vaga_horas = 48` |
 | `V7__busca_sem_acento.sql` | Extensão `unaccent` e a função `sem_acento()`, usada na busca de oportunidades |
-| `V8__carga_demonstracao.sql` | Massa de demonstração: 2 ONGs, gestores, coordenadores (um inativo), 6 voluntários, 10 habilidades, 8 vagas em todos os status, candidaturas, participações e o histórico coerente. Datas relativas ao dia da migração. Senha de todos: `Voluntare@2026` |
+| `V8__carga_demonstracao.sql` | Massa de demonstração: 2 ONGs, gestores, coordenadores (um inativo), 6 voluntários, 10 habilidades, 8 vagas em todos os status, candidaturas, participações e o histórico coerente. Datas relativas ao dia da migração. Ids fixos e legíveis: o 1º dígito diz a tabela (a oportunidade 1 é `40000000-0000-0000-0000-000000000001`). Senha de todos: `Voluntare@2026` |
 
 Uma migração por domínio, na ordem das dependências (as FKs só apontam para tabelas de migrações anteriores). Migração aplicada não se edita: qualquer mudança entra numa nova versão.
 

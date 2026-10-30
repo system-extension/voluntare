@@ -7,14 +7,14 @@
 -- =========================================================
 
 CREATE TABLE habilidade (
-    id    BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome  VARCHAR(80) NOT NULL,
     CONSTRAINT uk_habilidade_nome UNIQUE (nome)
 );
 
 CREATE TABLE voluntario_habilidade (
-    voluntario_id  BIGINT      NOT NULL,
-    habilidade_id  BIGINT      NOT NULL,
+    voluntario_id  UUID        NOT NULL,
+    habilidade_id  UUID        NOT NULL,
     tipo           VARCHAR(20) NOT NULL,
     CONSTRAINT pk_voluntario_habilidade PRIMARY KEY (voluntario_id, habilidade_id),
     CONSTRAINT fk_vh_voluntario FOREIGN KEY (voluntario_id) REFERENCES perfil_voluntario (usuario_id) ON DELETE RESTRICT,

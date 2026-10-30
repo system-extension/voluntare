@@ -27,6 +27,11 @@ public class TratadorDeErros {
         return resposta(HttpStatus.NOT_FOUND, ErroResponse.de(404, e.getMessage()));
     }
 
+    @ExceptionHandler(DadosInvalidosException.class)
+    public ResponseEntity<ErroResponse> dadosInvalidos(DadosInvalidosException e) {
+        return resposta(HttpStatus.BAD_REQUEST, new ErroResponse(400, e.getMessage(), e.getCampos()));
+    }
+
     @ExceptionHandler(ConflitoException.class)
     public ResponseEntity<ErroResponse> conflito(ConflitoException e) {
         return resposta(HttpStatus.CONFLICT, ErroResponse.de(409, e.getMessage()));

@@ -2,7 +2,7 @@ package br.univille.voluntare.oportunidade.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,7 +34,7 @@ public class ConsultaOportunidadeService {
     public PaginaResponse<OportunidadeResponse> buscar(FiltroOportunidades filtro) {
         PageRequest pageRequest = PageRequest.of(filtro.pagina() - 1, filtro.tamanho(), MAIS_RECENTES);
         Page<Oportunidade> pagina = repository.findAll(OportunidadeSpecs.buscaPublica(filtro), pageRequest);
-        Map<Long, Long> ocupadas = vagasOcupadas(pagina.getContent());
+        Map<UUID, Long> ocupadas = repository.vagasOcupadas(pagina.getContent());
         return PaginaResponse.de(pagina.map(o -> OportunidadeResponse.de(o, ocupadas.getOrDefault(o.getId(), 0L))));
     }
 
@@ -42,21 +42,10 @@ public class ConsultaOportunidadeService {
      * Detalhe de uma oportunidade. Encerradas e canceladas continuam visíveis (vagas salvas pelo voluntário);
      * rascunho é interno da organização e responde 404.
      */
-    public OportunidadeResponse detalhar(Long id) {
+    public OportunidadeResponse detalhar(UUID id) {
         Oportunidade oportunidade = repository.findByIdAndStatusNot(id, StatusOportunidade.RASCUNHO)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Oportunidade não encontrada."));
-        long ocupadas = vagasOcupadas(List.of(oportunidade)).getOrDefault(id, 0L);
+        long ocupadas = repository.vagasOcupadas(List.of(oportunidade)).getOrDefault(id, 0L);
         return OportunidadeResponse.de(oportunidade, ocupadas);
-    }
-
-    private Map<Long, Long> vagasOcupadas(List<Oportunidade> oportunidades) {
-        if (oportunidades.isEmpty()) {
-            return Map.of();
-        }
-        List<Long> ids = oportunidades.stream().map(Oportunidade::getId).toList();
-        return repository.contarVagasOcupadas(ids).stream()
-                .collect(Collectors.toMap(
-                        linha -> ((Number) linha[0]).longValue(),
-                        linha -> ((Number) linha[1]).longValue()));
     }
 }

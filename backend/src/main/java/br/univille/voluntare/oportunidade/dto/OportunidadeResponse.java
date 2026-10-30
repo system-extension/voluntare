@@ -1,14 +1,18 @@
 package br.univille.voluntare.oportunidade.dto;
 
 import java.time.Instant;
+import java.util.UUID;
 
 import br.univille.voluntare.oportunidade.entity.Causa;
 import br.univille.voluntare.oportunidade.entity.Oportunidade;
 import br.univille.voluntare.oportunidade.entity.StatusOportunidade;
 
-/** Oportunidade como a API devolve: organização resumida e vagas disponíveis já calculadas. */
+/**
+ * Oportunidade como a API devolve: organização e responsável resumidos e vagas disponíveis já calculadas.
+ * Em rascunho, os campos do anúncio podem vir nulos.
+ */
 public record OportunidadeResponse(
-        Long id,
+        UUID id,
         String titulo,
         String descricao,
         String atividades,
@@ -23,9 +27,14 @@ public record OportunidadeResponse(
         Integer vagasDisponiveis,
         StatusOportunidade status,
         Instant criadoEm,
-        OrganizacaoResumo organizacao) {
+        OrganizacaoResumo organizacao,
+        ResponsavelResumo responsavel) {
 
-    public record OrganizacaoResumo(Long id, String nome) {
+    public record OrganizacaoResumo(UUID id, String nome) {
+    }
+
+    /** Quem responde pela vaga na organização: o contato para dúvidas. */
+    public record ResponsavelResumo(UUID id, String nome) {
     }
 
     /** @param vagasOcupadas participações que ocupam vaga (todas menos CANCELADA) */
@@ -47,6 +56,7 @@ public record OportunidadeResponse(
                 disponiveis,
                 o.getStatus(),
                 o.getCriadoEm(),
-                new OrganizacaoResumo(o.getOrganizacao().getId(), o.getOrganizacao().getNome()));
+                new OrganizacaoResumo(o.getOrganizacao().getId(), o.getOrganizacao().getNome()),
+                new ResponsavelResumo(o.getResponsavel().getId(), o.getResponsavel().getNome()));
     }
 }

@@ -8,6 +8,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -100,12 +102,12 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.usuario.papel").value("VOLUNTARIO"))
                 .andReturn().getResponse().getContentAsString();
 
-        Integer id = JsonPath.read(resposta, "$.usuario.id");
+        String id = JsonPath.read(resposta, "$.usuario.id");
         // O perfil ainda está só na memória do Hibernate (o INSERT sai no commit, que aqui não acontece).
         // O JdbcTemplate lê direto do banco e não dispara esse envio sozinho: forçamos com flush().
         em.flush();
         assertThat(jdbc.queryForObject(
-                "SELECT cidade FROM perfil_voluntario WHERE usuario_id = ?", String.class, id))
+                "SELECT cidade FROM perfil_voluntario WHERE usuario_id = ?", String.class, UUID.fromString(id)))
                 .isEqualTo("Joinville");
         login("paula@example.com", "segredo123").andExpect(status().isOk());
     }

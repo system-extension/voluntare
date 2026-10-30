@@ -1,5 +1,7 @@
 package br.univille.voluntare.oportunidade;
 
+import static br.univille.voluntare.Demo.organizacao;
+import static br.univille.voluntare.Demo.vaga;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -18,7 +20,7 @@ import br.univille.voluntare.TestcontainersConfiguration;
 /**
  * Busca e detalhe de oportunidades contra o banco real com a massa da V8.
  * Abertas: 8 (mais recente), 6, 1 e 2. Vagas disponíveis: 8 → 2, 6 → 4, 1 → 2, 2 → 0 (preenchida).
- * 3 está encerrada, 4 é rascunho, 5 está cancelada e 7 encerrada.
+ * 3 está encerrada, 4 é rascunho, 5 está cancelada e 7 encerrada. vaga(n) e organizacao(n) vêm de Demo.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -34,7 +36,7 @@ class OportunidadeControllerTest {
     void listaSoAsAbertasDasMaisRecentesParaAsMaisAntigas() throws Exception {
         mvc.perform(get("/api/oportunidades"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.itens[*].id").value(contains(8, 6, 1, 2)))
+                .andExpect(jsonPath("$.itens[*].id").value(contains(vaga(8), vaga(6), vaga(1), vaga(2))))
                 .andExpect(jsonPath("$.pagina").value(1))
                 .andExpect(jsonPath("$.tamanho").value(15))
                 .andExpect(jsonPath("$.total").value(4))
@@ -51,15 +53,15 @@ class OportunidadeControllerTest {
     void textoIgnoraAcentosEMaiusculasEProcuraNaCausa() throws Exception {
         // 1 é da causa Educação; 2 tem "Educação" no título
         mvc.perform(get("/api/oportunidades").param("texto", "EDUCACAO"))
-                .andExpect(jsonPath("$.itens[*].id").value(contains(1, 2)));
+                .andExpect(jsonPath("$.itens[*].id").value(contains(vaga(1), vaga(2))));
         mvc.perform(get("/api/oportunidades").param("texto", "meio ambiente"))
-                .andExpect(jsonPath("$.itens[*].id").value(contains(2)));
+                .andExpect(jsonPath("$.itens[*].id").value(contains(vaga(2))));
     }
 
     @Test
     void textoProcuraNoNomeDaOrganizacao() throws Exception {
         mvc.perform(get("/api/oportunidades").param("texto", "patas amigas"))
-                .andExpect(jsonPath("$.itens[*].id").value(contains(8, 6)));
+                .andExpect(jsonPath("$.itens[*].id").value(contains(vaga(8), vaga(6))));
     }
 
     @Test
@@ -74,22 +76,22 @@ class OportunidadeControllerTest {
     @Test
     void localProcuraNaCidadeSemAcento() throws Exception {
         mvc.perform(get("/api/oportunidades").param("local", "sao paulo"))
-                .andExpect(jsonPath("$.itens[*].id").value(contains(8, 6)));
+                .andExpect(jsonPath("$.itens[*].id").value(contains(vaga(8), vaga(6))));
     }
 
     @Test
     void filtraPorCausaEPorOrganizacao() throws Exception {
         mvc.perform(get("/api/oportunidades").param("causa", "ANIMAIS"))
-                .andExpect(jsonPath("$.itens[*].id").value(contains(6)));
-        mvc.perform(get("/api/oportunidades").param("organizacaoId", "1"))
-                .andExpect(jsonPath("$.itens[*].id").value(contains(1, 2)));
+                .andExpect(jsonPath("$.itens[*].id").value(contains(vaga(6))));
+        mvc.perform(get("/api/oportunidades").param("organizacaoId", organizacao(1)))
+                .andExpect(jsonPath("$.itens[*].id").value(contains(vaga(1), vaga(2))));
     }
 
     @Test
     void paginaComecaEmUm() throws Exception {
         mvc.perform(get("/api/oportunidades").param("pagina", "2").param("tamanho", "3"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.itens[*].id").value(contains(2)))
+                .andExpect(jsonPath("$.itens[*].id").value(contains(vaga(2))))
                 .andExpect(jsonPath("$.pagina").value(2))
                 .andExpect(jsonPath("$.tamanho").value(3))
                 .andExpect(jsonPath("$.total").value(4))
@@ -120,7 +122,7 @@ class OportunidadeControllerTest {
 
     @Test
     void detalhaUmaOportunidadeAberta() throws Exception {
-        mvc.perform(get("/api/oportunidades/1"))
+        mvc.perform(get("/api/oportunidades/" + vaga(1)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.titulo").value("Apoio escolar para crianças"))
                 .andExpect(jsonPath("$.status").value("ABERTA"))
@@ -129,14 +131,14 @@ class OportunidadeControllerTest {
                 .andExpect(jsonPath("$.vagas").value(3))
                 .andExpect(jsonPath("$.vagasDisponiveis").value(2))
                 .andExpect(jsonPath("$.atividades").isNotEmpty())
-                .andExpect(jsonPath("$.organizacao.id").value(1))
+                .andExpect(jsonPath("$.organizacao.id").value(organizacao(1)))
                 .andExpect(jsonPath("$.organizacao.nome").value("Instituto Novos Caminhos"));
     }
 
     @Test
     void encerradaContinuaVisivelECancelamentoTardioOcupaVaga() throws Exception {
         // 3: presente, presente, ausente e cancelada tardia → as 4 vagas ocupadas
-        mvc.perform(get("/api/oportunidades/3"))
+        mvc.perform(get("/api/oportunidades/" + vaga(3)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("ENCERRADA"))
                 .andExpect(jsonPath("$.vagasDisponiveis").value(0));
@@ -144,10 +146,10 @@ class OportunidadeControllerTest {
 
     @Test
     void rascunhoEInexistenteRespondem404() throws Exception {
-        mvc.perform(get("/api/oportunidades/4"))
+        mvc.perform(get("/api/oportunidades/" + vaga(4)))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.mensagem").value("Oportunidade não encontrada."));
-        mvc.perform(get("/api/oportunidades/999"))
+        mvc.perform(get("/api/oportunidades/" + vaga(999)))
                 .andExpect(status().isNotFound());
     }
 

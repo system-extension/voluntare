@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -137,12 +138,13 @@ class CargaDemonstracaoTest {
     }
 
     @Test
-    void identidadesContinuamDepoisDaCarga() {
-        Long novoId = jdbc.queryForObject("""
+    void bancoGeraUuidQuandoOIdNaoEhInformado() {
+        // Fallback do DEFAULT gen_random_uuid() para quem insere direto no SQL (D-21)
+        UUID novoId = jdbc.queryForObject("""
                 INSERT INTO habilidade (nome) VALUES ('Habilidade criada no teste') RETURNING id
-                """, Long.class);
+                """, UUID.class);
 
-        assertThat(novoId).isGreaterThan(10L);
+        assertThat(novoId).isNotNull();
         jdbc.update("DELETE FROM habilidade WHERE id = ?", novoId);
     }
 

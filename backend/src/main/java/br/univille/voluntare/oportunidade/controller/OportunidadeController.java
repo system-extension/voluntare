@@ -1,5 +1,7 @@
 package br.univille.voluntare.oportunidade.controller;
 
+import java.util.UUID;
+
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,7 +33,7 @@ public class OportunidadeController {
 
     @GetMapping("/{id}")
     @Operation(summary = "Detalhe de uma oportunidade. Rascunho responde 404")
-    public OportunidadeResponse detalhar(@PathVariable Long id) {
+    public OportunidadeResponse detalhar(@PathVariable UUID id) {
         return consulta.detalhar(id);
     }
 }

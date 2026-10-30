@@ -1,6 +1,7 @@
 package br.univille.voluntare.auth.service;
 
 import java.util.Locale;
+import java.util.UUID;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import br.univille.voluntare.shared.exception.ConflitoException;
 import br.univille.voluntare.shared.exception.NaoAutenticadoException;
 import br.univille.voluntare.usuario.entity.Usuario;
 import br.univille.voluntare.usuario.repository.UsuarioRepository;
+import br.univille.voluntare.usuario.service.UsuarioLogadoService;
 import br.univille.voluntare.voluntario.entity.PerfilVoluntario;
 import br.univille.voluntare.voluntario.repository.PerfilVoluntarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +37,7 @@ public class AuthService {
     private final PerfilVoluntarioRepository perfis;
     private final PasswordEncoder senhas;
     private final TokenService tokens;
+    private final UsuarioLogadoService logado;
 
     @Transactional
     public SessaoResponse cadastrarVoluntario(CadastroVoluntarioRequest dados) {
@@ -81,11 +84,8 @@ public class AuthService {
 
     /** Lê do banco, não só do token: conta desativada depois do login perde o acesso aqui. */
     @Transactional(readOnly = true)
-    public UsuarioResponse usuarioLogado(Long id) {
-        return usuarios.findComOrganizacaoById(id)
-                .filter(Usuario::podeAcessar)
-                .map(UsuarioResponse::de)
-                .orElseThrow(() -> new NaoAutenticadoException("Sessão inválida. Faça login de novo."));
+    public UsuarioResponse usuarioLogado(UUID id) {
+        return UsuarioResponse.de(logado.carregar(id));
     }
 
     private SessaoResponse sessao(Usuario usuario) {

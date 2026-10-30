@@ -1,5 +1,7 @@
 package br.univille.voluntare.auth.controller;
 
+import java.util.UUID;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -54,6 +56,6 @@ public class AuthController {
     @GetMapping("/eu")
     @Operation(summary = "Quem está logado", security = @SecurityRequirement(name = OpenApiConfig.BEARER))
     public UsuarioResponse eu(@AuthenticationPrincipal Jwt token) {
-        return auth.usuarioLogado(Long.valueOf(token.getSubject()));
+        return auth.usuarioLogado(UUID.fromString(token.getSubject()));
     }
 }

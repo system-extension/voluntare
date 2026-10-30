@@ -9,9 +9,9 @@
 -- Toda oportunidade é presencial. É classificada por causa, não por habilidade.
 -- Rascunho pode ser salvo incompleto; os demais campos passam a ser obrigatórios ao publicar.
 CREATE TABLE oportunidade (
-    id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    organizacao_id  BIGINT       NOT NULL,
-    responsavel_id  BIGINT       NOT NULL,
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organizacao_id  UUID         NOT NULL,
+    responsavel_id  UUID         NOT NULL,
     titulo          VARCHAR(150) NOT NULL,
     descricao       TEXT,
     atividades      TEXT,

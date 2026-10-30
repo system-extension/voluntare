@@ -8,7 +8,7 @@
 
 -- A ONG se autocadastra: a organização e o seu gestor nascem na mesma transação
 CREATE TABLE organizacao (
-    id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id         UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome       VARCHAR(150) NOT NULL,
     descricao  TEXT,
     cidade     VARCHAR(100) NOT NULL,
@@ -28,8 +28,8 @@ CREATE UNIQUE INDEX ux_organizacao_nome ON organizacao (lower(nome));
 -- =========================================================
 
 CREATE TABLE usuario (
-    id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    organizacao_id  BIGINT,
+    id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organizacao_id  UUID,
     nome            VARCHAR(120) NOT NULL,
     email           VARCHAR(160) NOT NULL,
     senha_hash      VARCHAR(100) NOT NULL,
@@ -48,7 +48,7 @@ CREATE TABLE usuario (
 CREATE UNIQUE INDEX ux_usuario_email ON usuario (lower(email));
 
 CREATE TABLE perfil_voluntario (
-    usuario_id      BIGINT PRIMARY KEY,
+    usuario_id      UUID PRIMARY KEY,
     telefone        VARCHAR(20),
     cidade          VARCHAR(100),
     disponibilidade TEXT,

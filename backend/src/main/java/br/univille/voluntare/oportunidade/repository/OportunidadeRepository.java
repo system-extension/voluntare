@@ -2,7 +2,10 @@ package br.univille.voluntare.oportunidade.repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,18 +20,30 @@ import br.univille.voluntare.oportunidade.entity.Oportunidade;
 import br.univille.voluntare.oportunidade.entity.StatusOportunidade;
 
 public interface OportunidadeRepository
-        extends JpaRepository<Oportunidade, Long>, JpaSpecificationExecutor<Oportunidade> {
+        extends JpaRepository<Oportunidade, UUID>, JpaSpecificationExecutor<Oportunidade> {
 
-    /** Busca com filtros. O EntityGraph traz a organização no mesmo SELECT (sem uma consulta por linha). */
+    /** Busca com filtros. O EntityGraph traz organização e responsável no mesmo SELECT (sem uma consulta por linha). */
     @Override
-    @EntityGraph(attributePaths = "organizacao")
+    @EntityGraph(attributePaths = {"organizacao", "responsavel"})
     Page<Oportunidade> findAll(Specification<Oportunidade> spec, Pageable pageable);
 
-    @EntityGraph(attributePaths = "organizacao")
-    Optional<Oportunidade> findByIdAndStatusNot(Long id, StatusOportunidade status);
+    @EntityGraph(attributePaths = {"organizacao", "responsavel"})
+    Optional<Oportunidade> findByIdAndStatusNot(UUID id, StatusOportunidade status);
+
+    @EntityGraph(attributePaths = {"organizacao", "responsavel"})
+    Optional<Oportunidade> findComRelacoesById(UUID id);
+
+    /** Área da organização: todas as vagas dela (visão do gestor). */
+    @EntityGraph(attributePaths = {"organizacao", "responsavel"})
+    List<Oportunidade> findByOrganizacaoIdOrderByCriadoEmDescIdDesc(UUID organizacaoId);
+
+    /** Área da organização: só as vagas pelas quais a pessoa responde (visão do coordenador). */
+    @EntityGraph(attributePaths = {"organizacao", "responsavel"})
+    List<Oportunidade> findByOrganizacaoIdAndResponsavelIdOrderByCriadoEmDescIdDesc(UUID organizacaoId,
+            UUID responsavelId);
 
     /**
-     * Vagas ocupadas por oportunidade, numa consulta só para a página inteira.
+     * Vagas ocupadas por oportunidade, numa consulta só para a lista inteira.
      * Ocupa vaga toda participação que não foi devolvida a tempo: CANCELADA_TARDIA continua ocupando.
      * Devolve linhas [oportunidade_id, quantidade]; quem não tem participação não aparece.
      */
@@ -40,5 +55,17 @@ public interface OportunidadeRepository
               AND p.status <> 'CANCELADA'
             GROUP BY c.oportunidade_id
             """, nativeQuery = true)
-    List<Object[]> contarVagasOcupadas(@Param("ids") Collection<Long> ids);
+    List<Object[]> contarVagasOcupadas(@Param("ids") Collection<UUID> ids);
+
+    /** Mapa id → vagas ocupadas. Quem não aparece no mapa tem zero. */
+    default Map<UUID, Long> vagasOcupadas(Collection<Oportunidade> oportunidades) {
+        if (oportunidades.isEmpty()) {
+            return Map.of();
+        }
+        List<UUID> ids = oportunidades.stream().map(Oportunidade::getId).toList();
+        return contarVagasOcupadas(ids).stream()
+                .collect(Collectors.toMap(
+                        linha -> (UUID) linha[0],
+                        linha -> ((Number) linha[1]).longValue()));
+    }
 }
