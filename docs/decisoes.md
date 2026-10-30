@@ -2,6 +2,8 @@
 
 Itens de negócio dependem do Prof. Sestito (Cliente/PO). Itens técnicos podem ser questionados pelo Tech Lead.
 
+As regras de negócio que resultam destas decisões estão consolidadas em [regras-de-negocio.md](regras-de-negocio.md).
+
 Status usados:
 
 - **Definida**: decisão técnica da equipe, justificada.
@@ -45,6 +47,7 @@ Cada trilha é revisada por outra pessoa do grupo antes de entrar na `develop`.
 | D-19 | Login com JWT assinado em HS256 pelo próprio Spring Security (OAuth2 Resource Server + Nimbus). O token leva id, papel e organização e vale 8 horas; a chave vem de `JWT_SEGREDO` | Biblioteca externa (jjwt); sessão no servidor | Menos código próprio: o Spring valida assinatura e expiração sozinho. Sem sessão no servidor, como pede a arquitetura. Sem refresh token no MVP: ao expirar, a pessoa entra de novo | Definida |
 | D-20 | Área da organização: vaga de outra organização responde 404 (não 403); coordenador que não responde pela vaga recebe 403. Rascunho é criado com `rascunho: true`; sem isso a vaga já nasce aberta. Na edição de vaga aberta, o início só precisa ser no futuro se tiver mudado. O responsável aparece na resposta pública como contato | 403 para outra organização; endpoint separado para rascunho | 404 não revela que a vaga existe em outra ONG. O formulário atual publica direto, então o padrão continua compatível. Exigir início futuro sempre travaria a edição de uma vaga já em andamento | Definida |
 | D-21 | Chaves primárias em UUID. O backend gera UUID v7 (ordenado pelo tempo) ao salvar; o banco tem `DEFAULT gen_random_uuid()` para inserções feitas direto no SQL. A massa de demonstração usa ids fixos e legíveis (o 1º dígito diz a tabela: a oportunidade 1 é `40000000-0000-0000-0000-000000000001`) | `BIGINT GENERATED ALWAYS AS IDENTITY` (usado até aqui); híbrido com `bigint` interno e uma coluna `codigo UUID` pública | Ids sequenciais nas URLs revelam o volume de registros e convidam a testar ids vizinhos; a autorização continua sendo a proteção principal, o UUID é uma camada a mais. O id passa a existir antes do INSERT. O v7 cresce com o tempo e não fragmenta os índices como o v4 aleatório. Custo: 16 bytes por chave em vez de 8 e ids menos legíveis. Trocado antes de qualquer ambiente real, editando as migrações como na D-16: quem tem o banco local recria com `docker compose down -v` | Definida |
+| D-22 | Candidatura: o voluntário pode se candidatar a vaga já preenchida (fica pendente, como lista de espera) e não pode depois que a atividade começou. A desistência é um endpoint só (`/candidaturas/{id}/cancelar`): pendente cancela a candidatura; aceita cancela a participação, e o prazo do `parametro` decide entre `CANCELADA` e `CANCELADA_TARDIA`. Depois do início não dá para desistir pelo sistema. O aceite trava a vaga com `SELECT ... FOR UPDATE` antes de contar as vagas | Bloquear candidatura em vaga cheia; dois endpoints de desistência; contar as vagas sem trava | Quem já foi aceito pode desistir a tempo e liberar o lugar para um pendente. Para o voluntário existe uma ação só, "desistir"; a regra de qual registro muda fica no backend. Sem a trava, dois aceites simultâneos leem a mesma contagem e passam do limite (regra 3), o que o teste `CorridaPelaUltimaVagaTest` reproduz | Definida |
 
 ## 3. Perguntas de descoberta do briefing
 
