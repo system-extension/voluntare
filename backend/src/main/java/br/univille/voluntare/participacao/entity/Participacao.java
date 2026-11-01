@@ -69,6 +69,25 @@ public class Participacao {
         return status == StatusParticipacao.CONFIRMADA;
     }
 
+    /** Regras 4 e 5: só participação confirmada, e o registro é definitivo. Quem e quando ficam gravados. */
+    public void registrarPresenca(BigDecimal horas, Usuario autor) {
+        registrar(StatusParticipacao.PRESENTE, autor);
+        this.horasRealizadas = horas;
+    }
+
+    public void registrarAusencia(Usuario autor) {
+        registrar(StatusParticipacao.AUSENTE, autor);
+    }
+
+    private void registrar(StatusParticipacao resultado, Usuario autor) {
+        if (!confirmada()) {
+            throw new IllegalStateException("Participação não está confirmada: " + status);
+        }
+        this.status = resultado;
+        this.registradoEm = Instant.now();
+        this.registradoPor = autor;
+    }
+
     /**
      * Regra 6: cancelar até o prazo antes do início devolve a vaga (CANCELADA);
      * depois disso a vaga não volta (CANCELADA_TARDIA).
