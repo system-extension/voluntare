@@ -56,8 +56,8 @@ public class SegurancaConfig {
                 .csrf(AbstractHttpConfigurer::disable) // API sem cookie de sessão: CSRF não se aplica
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(rotas -> rotas
-                        // Busca pública
-                        .requestMatchers(HttpMethod.GET, "/api/oportunidades", "/api/oportunidades/*").permitAll()
+                        // Busca pública e catálogo de habilidades
+                        .requestMatchers(HttpMethod.GET, "/api/oportunidades", "/api/oportunidades/*", "/api/habilidades").permitAll()
                         // Entrar e se cadastrar
                         .requestMatchers(HttpMethod.POST,
                                 "/api/auth/login", "/api/auth/cadastro", "/api/auth/cadastro-organizacao").permitAll()

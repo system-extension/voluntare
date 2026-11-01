@@ -2,7 +2,9 @@ package br.univille.voluntare.oportunidade.entity;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -15,6 +17,7 @@ import br.univille.voluntare.organizacao.entity.Organizacao;
 import br.univille.voluntare.shared.exception.ErroResponse.CampoErro;
 import br.univille.voluntare.shared.util.UuidV7Generator;
 import br.univille.voluntare.usuario.entity.Usuario;
+import br.univille.voluntare.voluntario.entity.Habilidade;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -22,6 +25,8 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
@@ -91,6 +96,13 @@ public class Oportunidade {
     @Column(name = "criado_em", nullable = false, updatable = false)
     private Instant criadoEm;
 
+    /** Habilidades desejadas (V9). Ajudam o voluntário a se encontrar na vaga; não são requisito para candidatar-se. */
+    @ManyToMany
+    @JoinTable(name = "oportunidade_habilidade",
+            joinColumns = @JoinColumn(name = "oportunidade_id"),
+            inverseJoinColumns = @JoinColumn(name = "habilidade_id"))
+    private Set<Habilidade> habilidades = new HashSet<>();
+
     public static Oportunidade nova(Organizacao organizacao, Usuario responsavel, StatusOportunidade status,
             OportunidadeRequest dados) {
         Oportunidade oportunidade = new Oportunidade();
@@ -114,6 +126,11 @@ public class Oportunidade {
         this.inicio = dados.inicio();
         this.fim = dados.fim();
         this.vagas = dados.vagas();
+    }
+
+    public void definirHabilidades(Set<Habilidade> novas) {
+        habilidades.clear();
+        habilidades.addAll(novas);
     }
 
     public void trocarResponsavel(Usuario novo) {

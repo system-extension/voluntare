@@ -76,6 +76,10 @@ public class Usuario {
         return new Usuario(organizacao, nome, email, senhaHash, Papel.GESTOR);
     }
 
+    public void renomear(String nome) {
+        this.nome = nome;
+    }
+
     /** Pode entrar: conta ativa e, se for da equipe, organização ativa. */
     public boolean podeAcessar() {
         return ativo && (organizacao == null || organizacao.isAtiva());

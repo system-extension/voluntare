@@ -1,11 +1,13 @@
 package br.univille.voluntare.oportunidade.dto;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import br.univille.voluntare.oportunidade.entity.Causa;
 import br.univille.voluntare.oportunidade.entity.Oportunidade;
 import br.univille.voluntare.oportunidade.entity.StatusOportunidade;
+import br.univille.voluntare.voluntario.dto.HabilidadeResponse;
 
 /**
  * Oportunidade como a API devolve: organização e responsável resumidos e vagas disponíveis já calculadas.
@@ -28,7 +30,8 @@ public record OportunidadeResponse(
         StatusOportunidade status,
         Instant criadoEm,
         OrganizacaoResumo organizacao,
-        ResponsavelResumo responsavel) {
+        ResponsavelResumo responsavel,
+        List<HabilidadeResponse> habilidades) {
 
     public record OrganizacaoResumo(UUID id, String nome) {
     }
@@ -57,6 +60,7 @@ public record OportunidadeResponse(
                 o.getStatus(),
                 o.getCriadoEm(),
                 new OrganizacaoResumo(o.getOrganizacao().getId(), o.getOrganizacao().getNome()),
-                new ResponsavelResumo(o.getResponsavel().getId(), o.getResponsavel().getNome()));
+                new ResponsavelResumo(o.getResponsavel().getId(), o.getResponsavel().getNome()),
+                HabilidadeResponse.lista(o.getHabilidades()));
     }
 }

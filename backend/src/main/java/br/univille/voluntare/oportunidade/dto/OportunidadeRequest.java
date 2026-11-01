@@ -1,6 +1,7 @@
 package br.univille.voluntare.oportunidade.dto;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import br.univille.voluntare.oportunidade.entity.Causa;
@@ -16,6 +17,7 @@ import jakarta.validation.constraints.Size;
  * (rascunho aceita só o título) e é conferido na entidade, ao salvar.
  *
  * @param responsavelId gestor ou coordenador da organização. Na criação, vazio = quem está criando.
+ * @param habilidadeIds habilidades desejadas, do catálogo. Na edição substituem as atuais (vazio = nenhuma).
  * @param rascunho      só na criação: true salva como RASCUNHO, false (padrão) já publica.
  */
 public record OportunidadeRequest(
@@ -41,5 +43,7 @@ public record OportunidadeRequest(
         @Max(value = 999, message = "Informe de 1 a 999 vagas.")
         Integer vagas,
         UUID responsavelId,
+        @Size(max = 10, message = "Escolha até 10 habilidades.")
+        List<UUID> habilidadeIds,
         boolean rascunho) {
 }

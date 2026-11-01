@@ -17,6 +17,9 @@ spring:
       hibernate:
         jdbc:
           time_zone: UTC
+        # Coleções e relações LAZY são carregadas em lotes (WHERE id IN (...)), não uma consulta por linha.
+        # Ex.: as habilidades das 15 vagas de uma página da busca saem numa consulta só.
+        default_batch_fetch_size: 50
 
   flyway:
     locations: classpath:db/migration

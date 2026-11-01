@@ -88,6 +88,14 @@ class OportunidadeControllerTest {
     }
 
     @Test
+    void buscaTrazAsHabilidadesDeCadaVaga() throws Exception {
+        // Vaga 8 (a mais recente): Fotografia e Comunicação e redes sociais
+        mvc.perform(get("/api/oportunidades"))
+                .andExpect(jsonPath("$.itens[0].habilidades[*].nome")
+                        .value(contains("Comunicação e redes sociais", "Fotografia")));
+    }
+
+    @Test
     void paginaComecaEmUm() throws Exception {
         mvc.perform(get("/api/oportunidades").param("pagina", "2").param("tamanho", "3"))
                 .andExpect(status().isOk())
@@ -132,7 +140,9 @@ class OportunidadeControllerTest {
                 .andExpect(jsonPath("$.vagasDisponiveis").value(2))
                 .andExpect(jsonPath("$.atividades").isNotEmpty())
                 .andExpect(jsonPath("$.organizacao.id").value(organizacao(1)))
-                .andExpect(jsonPath("$.organizacao.nome").value("Instituto Novos Caminhos"));
+                .andExpect(jsonPath("$.organizacao.nome").value("Instituto Novos Caminhos"))
+                .andExpect(jsonPath("$.responsavel.nome").value("Bruno Costa"))
+                .andExpect(jsonPath("$.habilidades[*].nome").value(contains("Ensino e reforço escolar")));
     }
 
     @Test

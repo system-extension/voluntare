@@ -215,7 +215,9 @@ class CandidaturaControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].voluntario.nome").value(contains(
                         "Fernanda Lima", "Helena Rocha", "Julia Ferreira", "Igor Santos", "Gustavo Alves")))
-                .andExpect(jsonPath("$[2].participacao.status").value("CANCELADA"));
+                .andExpect(jsonPath("$[2].participacao.status").value("CANCELADA"))
+                .andExpect(jsonPath("$[0].voluntario.habilidades").value(contains("Educação ambiental", "Ensino e reforço escolar")))
+                .andExpect(jsonPath("$[0].voluntario.interesses").value(contains("Recreação infantil")));
         como(CARLA, get("/api/organizacao/oportunidades/" + vaga(1) + "/candidaturas"))
                 .andExpect(status().isForbidden());
     }

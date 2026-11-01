@@ -1,5 +1,6 @@
 package br.univille.voluntare.oportunidade;
 
+import static br.univille.voluntare.Demo.habilidade;
 import static br.univille.voluntare.Demo.organizacao;
 import static br.univille.voluntare.Demo.usuario;
 import static br.univille.voluntare.Demo.vaga;
@@ -79,6 +80,35 @@ class GestaoOportunidadeControllerTest {
                 .andExpect(jsonPath("$[0].statusAnterior").doesNotExist())
                 .andExpect(jsonPath("$[0].statusNovo").value("ABERTA"))
                 .andExpect(jsonPath("$[0].alteradoPor.nome").value("Ana Ribeiro"));
+    }
+
+    @Test
+    void vagaGuardaAsHabilidadesDesejadas() throws Exception {
+        Instant inicio = Instant.now().plus(10, ChronoUnit.DAYS).truncatedTo(ChronoUnit.DAYS).plus(14, ChronoUnit.HOURS);
+        String resposta = como(ANA, post("/api/oportunidades").content("""
+                {"titulo": "Cobertura fotográfica", "descricao": "Registrar o evento de fim de ano do instituto.",
+                 "causa": "COMUNICACAO", "local": "Rua XV de Novembro, 1200", "cidade": "Joinville", "uf": "SC",
+                 "inicio": "%s", "fim": "%s", "vagas": 2,
+                 "habilidadeIds": ["%s", "%s"]}
+                """.formatted(inicio, inicio.plus(3, ChronoUnit.HOURS), habilidade(6), habilidade(5))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.habilidades[*].nome").value(contains("Comunicação e redes sociais", "Fotografia")))
+                .andReturn().getResponse().getContentAsString();
+        String id = JsonPath.read(resposta, "$.id");
+
+        // Na edição, a lista substitui a anterior
+        como(ANA, put("/api/oportunidades/" + id).content(vagaCompleta("Cobertura fotográfica", null)
+                .replace("\"responsavelId\": null", "\"responsavelId\": null, \"habilidadeIds\": [\"%s\"]".formatted(habilidade(5)))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.habilidades[*].nome").value(contains("Fotografia")));
+    }
+
+    @Test
+    void habilidadeDesejadaPrecisaSerDoCatalogo() throws Exception {
+        como(ANA, post("/api/oportunidades").content(vagaCompleta("Vaga Z", null)
+                .replace("\"responsavelId\": null", "\"responsavelId\": null, \"habilidadeIds\": [\"%s\"]".formatted(habilidade(99)))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos[0].campo").value("habilidadeIds"));
     }
 
     @Test

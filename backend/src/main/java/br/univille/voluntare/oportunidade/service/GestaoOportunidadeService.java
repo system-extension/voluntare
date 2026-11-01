@@ -24,6 +24,7 @@ import br.univille.voluntare.usuario.entity.Papel;
 import br.univille.voluntare.usuario.entity.Usuario;
 import br.univille.voluntare.usuario.repository.UsuarioRepository;
 import br.univille.voluntare.usuario.service.UsuarioLogadoService;
+import br.univille.voluntare.voluntario.service.CatalogoHabilidades;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -41,6 +42,7 @@ public class GestaoOportunidadeService {
     private final UsuarioLogadoService logado;
     private final HistoricoService historico;
     private final AcessoOportunidade acesso;
+    private final CatalogoHabilidades catalogo;
 
     // ---------- leitura ----------
 
@@ -80,6 +82,7 @@ public class GestaoOportunidadeService {
         StatusOportunidade status = dados.rascunho() ? StatusOportunidade.RASCUNHO : StatusOportunidade.ABERTA;
 
         Oportunidade oportunidade = Oportunidade.nova(autor.getOrganizacao(), responsavel, status, dados);
+        oportunidade.definirHabilidades(catalogo.buscar(dados.habilidadeIds(), "habilidadeIds"));
         exigirSemPendencias(status == StatusOportunidade.ABERTA
                 ? oportunidade.pendenciasParaAbrir(Instant.now(), true)
                 : oportunidade.pendenciasDoPeriodo());
@@ -106,6 +109,7 @@ public class GestaoOportunidadeService {
         long ocupadas = oportunidades.vagasOcupadas(List.of(oportunidade)).getOrDefault(id, 0L);
         Instant inicioAntes = oportunidade.getInicio();
         oportunidade.aplicar(dados);
+        oportunidade.definirHabilidades(catalogo.buscar(dados.habilidadeIds(), "habilidadeIds"));
 
         if (oportunidade.getStatus() == StatusOportunidade.ABERTA) {
             boolean inicioMudou = !Objects.equals(inicioAntes, oportunidade.getInicio());

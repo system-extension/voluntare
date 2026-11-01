@@ -26,6 +26,10 @@ public final class Demo {
         return id(2, n);
     }
 
+    public static String habilidade(int n) {
+        return id(3, n);
+    }
+
     public static String vaga(int n) {
         return id(4, n);
     }

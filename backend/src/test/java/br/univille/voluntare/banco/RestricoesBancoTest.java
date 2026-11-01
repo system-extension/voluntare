@@ -95,10 +95,16 @@ class RestricoesBancoTest {
                         "INSERT INTO historico_status (oportunidade_id, status_anterior, status_novo, alterado_por) VALUES (:vaga1, 'ABERTA', 'ABERTA', :usuario1)"),
 
                 // Sem exclusão física
-                caso("excluir oportunidade com histórico", "fk_hist_oportunidade",
+                caso("excluir oportunidade com histórico", "fk_hist_oportunidade|fk_oh_oportunidade",
                         "DELETE FROM oportunidade WHERE id = :vaga4"),
                 caso("excluir organização com equipe", "fk_usuario_organizacao|fk_oportunidade_organizacao",
-                        "DELETE FROM organizacao WHERE id = :organizacao2"));
+                        "DELETE FROM organizacao WHERE id = :organizacao2"),
+
+                // Habilidades (V9)
+                caso("habilidade desejada repetida na mesma vaga", "pk_oportunidade_habilidade",
+                        "INSERT INTO oportunidade_habilidade (oportunidade_id, habilidade_id) VALUES (:vaga1, :habilidade1)"),
+                caso("excluir habilidade usada por vaga ou voluntário", "fk_oh_habilidade|fk_vh_habilidade",
+                        "DELETE FROM habilidade WHERE id = :habilidade1"));
     }
 
     @ParameterizedTest(name = "{0}")
