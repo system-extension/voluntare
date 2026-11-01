@@ -79,18 +79,19 @@ Toda regra nova ou alterada entra aqui antes (ou junto) do código. Se a regra v
 | RN-42 | Depois do aceite, desistir cancela a participação (a candidatura continua aceita) | B6 | service | ✅ |
 | RN-43 | Desistir até 48 horas antes do início devolve a vaga (`CANCELADA`); depois disso, não devolve (`CANCELADA_TARDIA`). O prazo fica na tabela `parametro` | B6, Q-01 | service | ✅ ❓ |
 | RN-44 | Depois que a atividade começou, o voluntário não desiste pelo sistema | D-22 | service | ✅ |
-| RN-45 | Presença, ausência e horas só para participação confirmada | B4 | banco + service | ⏳ |
-| RN-46 | Presença e horas só depois do fim da atividade | B5, Q-05 | service | ⏳ |
-| RN-47 | Horas maiores que zero, obrigatórias para presente e no máximo a duração da atividade (fim − início) | B5, Q-09 | banco + service | ⏳ (o banco já barra zero e negativo) |
-| RN-48 | Quem registrou e quando ficam gravados | RNF | banco + service | ⏳ |
+| RN-45 | Presença, ausência e horas só para participação confirmada, registradas pelo responsável da vaga ou pelo gestor | B4 | banco + service | ✅ |
+| RN-46 | Presença e horas só depois do fim da atividade, e nunca em vaga cancelada | B5, Q-05 | service | ✅ |
+| RN-47 | Horas maiores que zero, com até duas casas decimais, obrigatórias para presente e no máximo a duração da atividade (fim − início) | B5, Q-09 | banco + service | ✅ |
+| RN-48 | Quem registrou e quando ficam gravados | RNF | banco + service | ✅ |
+| RN-57 | O registro de presença ou ausência é definitivo: não há correção pelo sistema | D-23 | service | ✅ ❓ |
 
 ## 6. Histórico
 
 | ID | Regra | Origem | Onde | Situação |
 |---|---|---|---|---|
 | RN-49 | Nada é apagado: vagas, candidaturas e participações só mudam de status | B7 | banco | ✅ |
-| RN-50 | Toda mudança de status grava quem fez, quando e, se houver, o motivo, na mesma operação da mudança. A primeira linha (status anterior vazio) diz quem criou | RNF | banco + service | ✅ vagas e candidaturas · ⏳ presença |
-| RN-51 | O voluntário vê o seu histórico de participações, com as horas | B7, MVP | service | ⏳ parcial: "minhas candidaturas" já mostra a situação de cada uma |
+| RN-50 | Toda mudança de status grava quem fez, quando e, se houver, o motivo, na mesma operação da mudança. A primeira linha (status anterior vazio) diz quem criou | RNF | banco + service | ✅ |
+| RN-51 | O voluntário vê o seu histórico de participações, com o total de horas das presenças | B7, MVP | service | ✅ |
 
 ## 7. Perfil do voluntário
 
