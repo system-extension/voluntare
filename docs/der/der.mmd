@@ -8,6 +8,8 @@ erDiagram
     CANDIDATURA ||--o| PARTICIPACAO : "gera quando aceita"
     PERFIL_VOLUNTARIO ||--o{ VOLUNTARIO_HABILIDADE : "informa"
     HABILIDADE ||--o{ VOLUNTARIO_HABILIDADE : "classifica"
+    OPORTUNIDADE ||--o{ OPORTUNIDADE_HABILIDADE : "deseja"
+    HABILIDADE ||--o{ OPORTUNIDADE_HABILIDADE : "classifica"
     USUARIO |o--o{ CANDIDATURA : "decide"
     USUARIO |o--o{ PARTICIPACAO : "registra"
     USUARIO ||--o{ HISTORICO_STATUS : "altera"
@@ -68,6 +70,10 @@ erDiagram
         int vagas "de 1 a 999"
         varchar status "RASCUNHO, ABERTA, ENCERRADA, CANCELADA"
         timestamptz criado_em
+    }
+    OPORTUNIDADE_HABILIDADE {
+        uuid oportunidade_id PK, FK
+        uuid habilidade_id PK, FK
     }
     CANDIDATURA {
         uuid id PK

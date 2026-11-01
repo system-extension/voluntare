@@ -56,7 +56,7 @@ Toda regra nova ou alterada entra aqui antes (ou junto) do código. Se a regra v
 | RN-29 | A busca pública mostra só vagas abertas, das mais recentes para as mais antigas, sem diferenciar acentos | D-17 | service | ✅ |
 | RN-30 | O detalhe público mostra vagas abertas, encerradas e canceladas (vagas salvas pelo voluntário). Rascunho não aparece | — | service | ✅ |
 | RN-31 | Vagas disponíveis = vagas − participações que ocupam lugar. Só a participação `CANCELADA` libera o lugar | B3, B6 | service | ✅ |
-| RN-32 | A vaga pede habilidades desejadas | Briefing 3.1 | — | ❓ hoje a vaga não tem habilidades (Q-11) |
+| RN-32 | A vaga lista até 10 habilidades desejadas, do catálogo. São informativas: não impedem ninguém de se candidatar | Briefing 3.1, D-24 | banco + service | ✅ |
 
 ## 4. Candidatura
 
@@ -97,7 +97,9 @@ Toda regra nova ou alterada entra aqui antes (ou junto) do código. Se a regra v
 
 | ID | Regra | Origem | Onde | Situação |
 |---|---|---|---|---|
-| RN-52 | O voluntário mantém telefone, cidade, disponibilidade em texto livre e as suas habilidades e interesses | MVP | service | ⏳ |
+| RN-52 | O voluntário mantém nome, telefone, cidade, disponibilidade em texto livre e as suas habilidades e interesses | MVP | service | ✅ |
+| RN-58 | Habilidades e interesses vêm do catálogo; o catálogo muda só por migração | D-24 | service | ✅ |
+| RN-59 | O responsável pela vaga vê as habilidades e os interesses de cada candidato | D-24 | service | ✅ |
 | RN-53 | Uma habilidade é habilidade ou interesse da pessoa, nunca os dois | — | banco | ✅ |
 
 ## 8. Painel da organização
@@ -112,6 +114,5 @@ Toda regra nova ou alterada entra aqui antes (ou junto) do código. Se a regra v
 
 Detalhes em [decisoes.md](decisoes.md), seção 5.
 
-- **RN-32:** o briefing pede habilidades desejadas na vaga; o modelo classifica só por causa.
 - **RN-01:** o briefing cita um administrador; no modelo, o gestor da ONG faz esse papel.
 - **RN-34, RN-43** e as demais marcadas ❓: propostas da equipe aguardando validação.
