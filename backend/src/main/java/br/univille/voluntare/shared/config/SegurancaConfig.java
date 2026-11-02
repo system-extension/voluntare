@@ -2,14 +2,17 @@ package br.univille.voluntare.shared.config;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -26,6 +29,9 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.source.ImmutableSecret;
@@ -54,6 +60,7 @@ public class SegurancaConfig {
 
         http
                 .csrf(AbstractHttpConfigurer::disable) // API sem cookie de sessão: CSRF não se aplica
+                .cors(Customizer.withDefaults())       // usa o bean corsConfigurationSource() abaixo
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(rotas -> rotas
                         // Busca pública e catálogo de habilidades
@@ -72,6 +79,23 @@ public class SegurancaConfig {
                         .authenticationEntryPoint(naoAutenticado)
                         .accessDeniedHandler(semPermissao));
         return http.build();
+    }
+
+    /**
+     * CORS: só as origens do frontend chamam a API pelo navegador (voluntare.cors.origens).
+     * Em desenvolvimento o Vite repassa /api para o Spring e nem precisa disto; vale quando o front
+     * é servido de outro endereço.
+     */
+    @Bean
+    CorsConfigurationSource corsConfigurationSource(@Value("${voluntare.cors.origens}") List<String> origens) {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(origens);
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setMaxAge(3600L);
+        UrlBasedCorsConfigurationSource fonte = new UrlBasedCorsConfigurationSource();
+        fonte.registerCorsConfiguration("/api/**", config);
+        return fonte;
     }
 
     @Bean

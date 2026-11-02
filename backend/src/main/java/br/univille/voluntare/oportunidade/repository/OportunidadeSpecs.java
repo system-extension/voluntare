@@ -1,5 +1,6 @@
 package br.univille.voluntare.oportunidade.repository;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +27,8 @@ public final class OportunidadeSpecs {
         return (root, query, cb) -> {
             List<Predicate> condicoes = new ArrayList<>();
             condicoes.add(cb.equal(root.get("status"), StatusOportunidade.ABERTA));
+            // Vaga que já começou não recebe candidatura (RN-35): sai da busca, mesmo antes de ser encerrada
+            condicoes.add(cb.greaterThan(root.<Instant>get("inicio"), Instant.now()));
 
             if (Textos.temConteudo(filtro.texto())) {
                 String padrao = Textos.padraoContendo(filtro.texto());

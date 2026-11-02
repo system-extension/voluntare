@@ -53,7 +53,7 @@ Toda regra nova ou alterada entra aqui antes (ou junto) do código. Se a regra v
 | RN-26 | O número de vagas não pode ficar abaixo dos voluntários já confirmados | — | service | ✅ |
 | RN-27 | O responsável (ou o gestor) encerra a vaga manualmente | Q-05 | service | ✅ |
 | RN-28 | Cancelar uma vaga aberta não apaga candidaturas nem participações; o motivo, se houver, fica no histórico | Q-08 | service | ✅ |
-| RN-29 | A busca pública mostra só vagas abertas, das mais recentes para as mais antigas, sem diferenciar acentos | D-17 | service | ✅ |
+| RN-29 | A busca pública mostra só vagas abertas que ainda não começaram, das mais recentes para as mais antigas, sem diferenciar acentos | D-17 | service | ✅ |
 | RN-30 | O detalhe público mostra vagas abertas, encerradas e canceladas (vagas salvas pelo voluntário). Rascunho não aparece | — | service | ✅ |
 | RN-31 | Vagas disponíveis = vagas − participações que ocupam lugar. Só a participação `CANCELADA` libera o lugar | B3, B6 | service | ✅ |
 | RN-32 | A vaga lista até 10 habilidades desejadas, do catálogo. São informativas: não impedem ninguém de se candidatar | Briefing 3.1, D-24 | banco + service | ✅ |

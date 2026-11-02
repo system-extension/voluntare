@@ -5,6 +5,8 @@ import static br.univille.voluntare.Demo.vaga;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.empty;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.options;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -13,14 +15,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpHeaders;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
+import br.univille.voluntare.Demo;
 import br.univille.voluntare.TestcontainersConfiguration;
 
 /**
  * Busca e detalhe de oportunidades contra o banco real com a massa da V8.
  * Abertas: 8 (mais recente), 6, 1 e 2. Vagas disponíveis: 8 → 2, 6 → 4, 1 → 2, 2 → 0 (preenchida).
  * 3 está encerrada, 4 é rascunho, 5 está cancelada e 7 encerrada. vaga(n) e organizacao(n) vêm de Demo.
+ * Os testes que alteram o banco usam @Transactional no próprio método, para desfazer no fim.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -29,6 +36,9 @@ class OportunidadeControllerTest {
 
     @Autowired
     private MockMvc mvc;
+
+    @Autowired
+    private JdbcTemplate jdbc;
 
     // ---------- busca ----------
 
@@ -93,6 +103,29 @@ class OportunidadeControllerTest {
         mvc.perform(get("/api/oportunidades"))
                 .andExpect(jsonPath("$.itens[0].habilidades[*].nome")
                         .value(contains("Comunicação e redes sociais", "Fotografia")));
+    }
+
+    @Test
+    @Transactional
+    void vagaQueJaComecouSaiDaBusca() throws Exception {
+        // Puxa a vaga 1 para ter começado há uma hora; ela continua ABERTA, mas não recebe mais candidatura
+        jdbc.update("UPDATE oportunidade SET inicio = now() - interval '1 hour', fim = now() + interval '2 hours'"
+                + " WHERE id = ?", Demo.uuid(vaga(1)));
+        mvc.perform(get("/api/oportunidades"))
+                .andExpect(jsonPath("$.itens[*].id").value(contains(vaga(8), vaga(6), vaga(2))));
+    }
+
+    @Test
+    void corsLiberaSoAOrigemDoFrontend() throws Exception {
+        mvc.perform(options("/api/oportunidades")
+                        .header(HttpHeaders.ORIGIN, "http://localhost:5173")
+                        .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:5173"));
+        mvc.perform(options("/api/oportunidades")
+                        .header(HttpHeaders.ORIGIN, "https://site-qualquer.example.com")
+                        .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "GET"))
+                .andExpect(status().isForbidden());
     }
 
     @Test

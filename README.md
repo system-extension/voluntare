@@ -52,7 +52,9 @@ Não fazemos commit direto na `main`. Todo trabalho entra por Pull Request, revi
 
 - [Arquitetura e stack](docs/arquitetura.md)
 - [Decisões e dúvidas](docs/decisoes.md)
+- [Regras de negócio](docs/regras-de-negocio.md)
 - [DER e dicionário de dados](docs/der/der.md)
+- [Plano e evidências de testes](docs/testes.md)
 - [Mockups e fluxo de telas](docs/mockups/README.md)
 
 ## Como executar
@@ -112,6 +114,25 @@ Com o backend rodando, a documentação da API fica em http://localhost:8080/swa
 Para chamar as rotas protegidas pelo Swagger, faça login em `POST /api/auth/login` (ex.: `ana@novoscaminhos.example.org`, senha `Voluntare@2026`), copie o `token` e cole em **Authorize**.
 
 Fora da máquina local, defina `JWT_SEGREDO` (no mínimo 32 caracteres aleatórios).
+Se o front for servido de outro endereço que não `http://localhost:5173`, defina `CORS_ORIGENS` (separadas por vírgula).
+
+### API
+
+Todas as rotas estão documentadas no Swagger. Resumo:
+
+| Área | Rotas | Acesso |
+|---|---|---|
+| Busca pública | `GET /api/oportunidades`, `GET /api/oportunidades/{id}`, `GET /api/habilidades` | Público |
+| Autenticação | `POST /api/auth/cadastro`, `POST /api/auth/cadastro-organizacao`, `POST /api/auth/login`, `GET /api/auth/eu` | Público / logado |
+| Perfil do voluntário | `GET` e `PUT /api/voluntarios/eu` | Voluntário |
+| Área da organização | `GET /api/organizacao`, `GET /api/organizacao/oportunidades` (+ `/{id}`, `/{id}/historico`, `/{id}/candidaturas`) | Gestor ou coordenador |
+| Vagas | `POST /api/oportunidades`, `PUT /api/oportunidades/{id}`, `POST /api/oportunidades/{id}/publicar`, `/encerrar`, `/cancelar` | Gestor cria; responsável ou gestor alteram |
+| Candidatura | `POST /api/oportunidades/{id}/candidaturas`, `GET /api/candidaturas/minhas`, `POST /api/candidaturas/{id}/cancelar` | Voluntário |
+| Decisão | `POST /api/candidaturas/{id}/aceitar`, `/rejeitar` | Responsável ou gestor |
+| Participação | `POST /api/participacoes/{id}/presenca`, `/ausencia` | Responsável ou gestor |
+| Histórico | `GET /api/participacoes/minhas` | Voluntário |
+
+Erros sempre no formato `{ "status": 400, "mensagem": "...", "campos": [{ "campo": "...", "mensagem": "..." }] }`.
 
 ### Frontend
 
