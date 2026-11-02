@@ -23,7 +23,7 @@ flowchart LR
 | Segurança | Spring Security + JWT (Bearer) | Frontend separado do backend, sem sessão no servidor. Senhas com BCrypt |
 | Validação | Jakarta Bean Validation | Exigido pelo briefing. O frontend também valida para melhorar a experiência |
 | Documentação da API | springdoc-openapi (Swagger UI) | Gera a documentação a partir do código |
-| Testes | JUnit 5 e Mockito | Foco nas regras críticas e nos fluxos principais |
+| Testes | JUnit 5, Mockito e Testcontainers; cobertura com JaCoCo | Integração contra o PostgreSQL real para as regras que dependem do banco; unitários e Mockito para as regras de entidade e de service que não dependem dele. Detalhes em [testes.md](testes.md) |
 | Frontend | React + Vite | Componentes reaproveitáveis nas telas de listagem e formulário |
 | Mockup | Figma | Gratuito, fácil de exportar em PNG e de compartilhar |
 | Ambiente local | Docker Compose | Sobe o PostgreSQL igual para todos |
@@ -46,7 +46,7 @@ Monólito modular: um pacote por módulo dentro de `br.univille.voluntare` e, de
 | `historico` | Registro das mudanças de status em `historico_status` | service, repository, entity |
 | `parametro` | Parâmetros do sistema, como o prazo de devolução da vaga. Mudam só por migração | service, repository, entity |
 | `dashboard` | Indicadores do painel da ONG, calculados por consulta | controller, service, dto |
-| `shared` | Erros, configuração e utilitários | config, exception, util |
+| `shared` | Erros, configuração, utilitários e DTOs comuns (como a página de resultados) | config, dto, exception, util |
 
 Regras de negócio ficam nos services. Controllers só recebem a requisição, validam e chamam o service. Entidades não são expostas na API, só DTOs.
 

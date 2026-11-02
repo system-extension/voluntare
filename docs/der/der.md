@@ -13,6 +13,8 @@ erDiagram
     CANDIDATURA ||--o| PARTICIPACAO : "gera quando aceita"
     PERFIL_VOLUNTARIO ||--o{ VOLUNTARIO_HABILIDADE : "informa"
     HABILIDADE ||--o{ VOLUNTARIO_HABILIDADE : "classifica"
+    OPORTUNIDADE ||--o{ OPORTUNIDADE_HABILIDADE : "deseja"
+    HABILIDADE ||--o{ OPORTUNIDADE_HABILIDADE : "classifica"
     USUARIO |o--o{ CANDIDATURA : "decide"
     USUARIO |o--o{ PARTICIPACAO : "registra"
     USUARIO ||--o{ HISTORICO_STATUS : "altera"
@@ -21,7 +23,7 @@ erDiagram
     PARTICIPACAO |o--o{ HISTORICO_STATUS : "tem"
 
     ORGANIZACAO {
-        bigint id PK
+        uuid id PK
         varchar nome UK "único por lower(nome)"
         text descricao
         varchar cidade
@@ -32,8 +34,8 @@ erDiagram
         timestamptz criado_em
     }
     USUARIO {
-        bigint id PK
-        bigint organizacao_id FK "obrigatória em GESTOR e COORDENADOR, nula em VOLUNTARIO"
+        uuid id PK
+        uuid organizacao_id FK "obrigatória em GESTOR e COORDENADOR, nula em VOLUNTARIO"
         varchar nome
         varchar email UK "único por lower(email)"
         varchar senha_hash
@@ -42,24 +44,24 @@ erDiagram
         timestamptz criado_em
     }
     PERFIL_VOLUNTARIO {
-        bigint usuario_id PK, FK
+        uuid usuario_id PK, FK
         varchar telefone
         varchar cidade
         text disponibilidade
     }
     HABILIDADE {
-        bigint id PK
+        uuid id PK
         varchar nome UK
     }
     VOLUNTARIO_HABILIDADE {
-        bigint voluntario_id PK, FK
-        bigint habilidade_id PK, FK
+        uuid voluntario_id PK, FK
+        uuid habilidade_id PK, FK
         varchar tipo "HABILIDADE, INTERESSE"
     }
     OPORTUNIDADE {
-        bigint id PK
-        bigint organizacao_id FK
-        bigint responsavel_id FK "gestor ou coordenador da mesma organização"
+        uuid id PK
+        uuid organizacao_id FK
+        uuid responsavel_id FK "gestor ou coordenador da mesma organização"
         varchar titulo
         text descricao "obrigatórios fora de RASCUNHO e CANCELADA"
         text atividades
@@ -74,32 +76,36 @@ erDiagram
         varchar status "RASCUNHO, ABERTA, ENCERRADA, CANCELADA"
         timestamptz criado_em
     }
+    OPORTUNIDADE_HABILIDADE {
+        uuid oportunidade_id PK, FK
+        uuid habilidade_id PK, FK
+    }
     CANDIDATURA {
-        bigint id PK
-        bigint oportunidade_id FK
-        bigint voluntario_id FK
+        uuid id PK
+        uuid oportunidade_id FK
+        uuid voluntario_id FK
         varchar status "PENDENTE, ACEITA, REJEITADA, CANCELADA"
         timestamptz criado_em
         timestamptz decidido_em "só em ACEITA ou REJEITADA"
-        bigint decidido_por FK "só em ACEITA ou REJEITADA"
+        uuid decidido_por FK "só em ACEITA ou REJEITADA"
     }
     PARTICIPACAO {
-        bigint id PK
-        bigint candidatura_id FK, UK
+        uuid id PK
+        uuid candidatura_id FK, UK
         varchar status "CONFIRMADA, PRESENTE, AUSENTE, CANCELADA, CANCELADA_TARDIA"
         decimal horas_realizadas "nula ou maior que 0, obrigatória em PRESENTE"
         timestamptz registrado_em "só em PRESENTE ou AUSENTE"
-        bigint registrado_por FK "só em PRESENTE ou AUSENTE"
+        uuid registrado_por FK "só em PRESENTE ou AUSENTE"
         timestamptz cancelado_em "só em CANCELADA e CANCELADA_TARDIA"
     }
     HISTORICO_STATUS {
-        bigint id PK
-        bigint oportunidade_id FK "só uma das três FKs preenchida"
-        bigint candidatura_id FK
-        bigint participacao_id FK
+        uuid id PK
+        uuid oportunidade_id FK "só uma das três FKs preenchida"
+        uuid candidatura_id FK
+        uuid participacao_id FK
         varchar status_anterior "nulo só na criação"
         varchar status_novo
-        bigint alterado_por FK
+        uuid alterado_por FK
         timestamptz alterado_em
         varchar observacao
     }
@@ -139,8 +145,9 @@ Cardinalidades principais:
 | `organizacao` | ONG que publica oportunidades. Tem equipe (gestores e coordenadores) |
 | `usuario` | Conta de acesso. O campo `papel` define o que a pessoa pode fazer e `organizacao_id` a ONG de quem é da equipe |
 | `perfil_voluntario` | Dados extras do voluntário. Usa o mesmo id do usuário |
-| `habilidade` | Catálogo de habilidades e interesses do voluntário |
+| `habilidade` | Catálogo de habilidades: perfil do voluntário e habilidades desejadas da vaga |
 | `voluntario_habilidade` | Liga voluntário e habilidade. O campo `tipo` diz se é habilidade ou interesse daquela pessoa |
+| `oportunidade_habilidade` | Habilidades desejadas da vaga (V9). Informativas: não impedem a candidatura |
 | `oportunidade` | Ação de voluntariado presencial, classificada por causa, com início, fim, local, vagas, status e responsável |
 | `candidatura` | Pedido do voluntário para participar de uma oportunidade |
 | `participacao` | Confirmação do voluntário e resultado (presença e horas) |
@@ -157,7 +164,7 @@ Cardinalidades principais:
 | `oportunidade.organizacao_id` | Nova. A organização é a dona da vaga |
 | `oportunidade.coordenador_id` | Virou `responsavel_id`: o gestor ou coordenador que responde pela vaga |
 | `oportunidade.causa` | Nova. A vaga é classificada por causa |
-| `oportunidade_habilidade` | Removida. A vaga não pede habilidade, só tem causa |
+| `oportunidade_habilidade` | Removida na v2 e recriada na V9 (D-24): a vaga tem causa e habilidades desejadas |
 | `oportunidade.atividades` e `requisitos` | Novos, opcionais, como na tela "Anunciar vaga" |
 | `oportunidade.status` | Ganhou `RASCUNHO` |
 | `historico_status` | `status_anterior` nulo marca a linha de criação, única por registro |
@@ -168,7 +175,7 @@ Cardinalidades principais:
 - **Responsável garantido no banco por FK composta.** `(organizacao_id, responsavel_id)` referencia `usuario (organizacao_id, id)`. Como só gestor e coordenador têm `organizacao_id`, o banco garante sozinho que o responsável é gestor ou coordenador **da mesma organização**. Um voluntário nunca casa com a FK. Também impede trocar de organização (ou virar voluntário) um usuário que ainda responde por vagas.
 - **Sem `criado_por` na oportunidade.** Quem criou fica na linha de criação do `historico_status` (`status_anterior` nulo, `alterado_por` = autor). `responsavel_id` responde "quem cuida agora"; o histórico responde "quem criou e quem mudou o quê".
 - **Vaga só presencial.** Não existe formato remoto ou híbrido, então `local`, `cidade` e `uf` são obrigatórios na vaga publicada.
-- **Classificação por causa, não por habilidade.** A vaga tem uma `causa` fixa (CHECK com as 5 causas da interface). As habilidades continuam só no perfil do voluntário.
+- **Classificação por causa, com habilidades desejadas.** A vaga tem uma `causa` fixa (CHECK com as 5 causas da interface) e, desde a V9, uma lista de habilidades desejadas do mesmo catálogo do perfil do voluntário (D-24).
 - **Rascunho.** A vaga pode ser salva como `RASCUNHO` só com o título. Ao publicar (`ABERTA`), descrição, causa, local, cidade, UF, datas e vagas passam a ser obrigatórios (`ck_oportunidade_completa`). Rascunho descartado vira `CANCELADA` e pode continuar incompleto.
 - **Candidatura e participação são separadas.** A candidatura é o pedido. A participação só existe depois do aceite e guarda presença e horas. Isso deixa clara a regra 4.
 - **Onde o voluntário cancela.** Antes do aceite, ele cancela a candidatura (`PENDENTE` para `CANCELADA`). Depois do aceite, a candidatura continua `ACEITA` e o cancelamento é feito na participação (`CANCELADA` ou `CANCELADA_TARDIA`).
@@ -247,15 +254,30 @@ Além dos índices criados pelas chaves primárias e pelas restrições únicas:
 | `candidatura` | `decidido_por` | FK para `usuario` |
 | `participacao` | `registrado_por` | FK para `usuario` |
 | `voluntario_habilidade` | `habilidade_id` | Lado inverso da chave composta |
+| `oportunidade_habilidade` | `habilidade_id` | Lado inverso da chave composta |
 | `historico_status` | `oportunidade_id`, `candidatura_id`, `participacao_id` (parciais, onde não são nulos) | Buscar o histórico de um registro |
 | `historico_status` | `alterado_por` | FK para `usuario` |
+
+## Chaves
+
+Todas as chaves primárias são UUID (D-21). O backend gera UUID v7, que começa pelo instante da criação e por isso mantém os índices em ordem. O banco tem `DEFAULT gen_random_uuid()` para inserções feitas direto no SQL.
 
 ## Migrações
 
 | Arquivo | Conteúdo |
 |---|---|
-| `V1__schema_inicial.sql` | Todas as tabelas, restrições e índices, mais o parâmetro `prazo_devolucao_vaga_horas = 48` |
-| `V2__carga_demonstracao.sql` | Massa de demonstração: 2 ONGs, gestores, coordenadores (um inativo), 6 voluntários, 10 habilidades, 8 vagas em todos os status, candidaturas, participações e o histórico coerente. Datas relativas ao dia da migração. Senha de todos: `Voluntare@2026` |
+| `V1__organizacao_e_usuarios.sql` | `organizacao`, `usuario` e `perfil_voluntario` |
+| `V2__habilidades.sql` | `habilidade` e `voluntario_habilidade` |
+| `V3__oportunidades.sql` | `oportunidade` |
+| `V4__candidaturas_e_participacoes.sql` | `candidatura` e `participacao` |
+| `V5__historico_status.sql` | `historico_status` |
+| `V6__parametros.sql` | `parametro`, com `prazo_devolucao_vaga_horas = 48` |
+| `V7__busca_sem_acento.sql` | Extensão `unaccent` e a função `sem_acento()`, usada na busca de oportunidades |
+| `V8__carga_demonstracao.sql` | Massa de demonstração: 2 ONGs, gestores, coordenadores (um inativo), 6 voluntários, 10 habilidades, 8 vagas em todos os status, candidaturas, participações e o histórico coerente. Datas relativas ao dia da migração. Ids fixos e legíveis: o 1º dígito diz a tabela (a oportunidade 1 é `40000000-0000-0000-0000-000000000001`). Senha de todos: `Voluntare@2026` |
+| `V9__habilidades_da_oportunidade.sql` | `oportunidade_habilidade`: habilidades desejadas da vaga (D-24) |
+| `V10__carga_habilidades_das_oportunidades.sql` | Massa de demonstração: habilidades desejadas das 8 vagas |
+
+Uma migração por domínio, na ordem das dependências (as FKs só apontam para tabelas de migrações anteriores). Migração aplicada não se edita: qualquer mudança entra numa nova versão.
 
 As restrições e a coerência da carga são conferidas por `RestricoesBancoTest` e `CargaDemonstracaoTest`.
 

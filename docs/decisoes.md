@@ -2,11 +2,13 @@
 
 Itens de negócio dependem do Prof. Sestito (Cliente/PO). Itens técnicos podem ser questionados pelo Tech Lead.
 
+As regras de negócio que resultam destas decisões estão consolidadas em [regras-de-negocio.md](regras-de-negocio.md).
+
 Status usados:
 
 - **Definida**: decisão técnica da equipe, justificada.
 - **Definida pela equipe**: decisão de negócio tomada pela equipe para destravar o modelo. Pode ser revista pelo PO.
-- **Adotada pela equipe, implementada no V1. Aguarda validação do PO**: proposta levada ao professor, ainda sem resposta registrada. O schema (`V1__schema_inicial.sql`) já segue a proposta; se o PO pedir ajuste, ele entra por nova migração.
+- **Adotada pela equipe, implementada no schema. Aguarda validação do PO**: proposta levada ao professor, ainda sem resposta registrada. O schema (migrações em `backend/src/main/resources/db/migration`) já segue a proposta; se o PO pedir ajuste, ele entra por nova migração.
 
 ## 1. Organização da sprint
 
@@ -37,38 +39,46 @@ Cada trilha é revisada por outra pessoa do grupo antes de entrar na `develop`.
 | D-11 | Responsável da vaga garantido por FK composta (`organizacao_id`, `responsavel_id`) → `usuario (organizacao_id, id)` | Só no service | O briefing pede regras críticas no service e, quando pertinente, no banco. Com uma linha de SQL o banco impede responsável de outra ONG ou voluntário como responsável | Definida |
 | D-12 | Sem `criado_por` na oportunidade | Coluna `criado_por` | Quem criou já fica na linha de criação do `historico_status` (`status_anterior` nulo). Uma coluna a mais teria de ser mantida em sincronia | Definida |
 | D-13 | Linha de criação única no histórico, por índice único parcial | Só no service | Garante uma linha de criação por oportunidade, candidatura e participação | Definida |
-| D-14 | Massa de demonstração na migração `V2`, com datas relativas ao dia da migração | Datas fixas | As vagas futuras e encerradas continuam coerentes em qualquer dia de demonstração | Definida |
+| D-14 | Massa de demonstração na migração `V8__carga_demonstracao`, com datas relativas ao dia da migração | Datas fixas | As vagas futuras e encerradas continuam coerentes em qualquer dia de demonstração | Definida |
 | D-15 | CI do backend no GitHub Actions (`mvnw verify` com Testcontainers) | Testar só localmente | Os testes do banco precisam de Docker, que nem toda máquina da equipe tem | Definida |
+| D-16 | Uma migração Flyway por domínio (V1 a V6), em vez de um único `schema_inicial` | Um arquivo com todo o schema | Arquivos menores, revisão por assunto e o mesmo padrão das próximas mudanças. Feito antes de qualquer ambiente real: quem já tinha o banco local recria com `docker compose down -v` | Definida |
+| D-17 | Busca sem acento com a extensão `unaccent` e a função `sem_acento()` (`V7`) | Comparar só em minúsculas | "educacao" precisa encontrar "Educação", como o frontend já faz | Definida |
+| D-18 | Causas fixas no `enum Causa` + CHECK `ck_oportunidade_causa` (V3). Adicionar: nova migração recriando o CHECK, constante no enum e rótulo no `rotulos.js`. Retirar: só sai das opções do formulário no frontend; CHECK e enum continuam com o valor | Tabela `causa` gerenciável; apagar o valor do enum e do CHECK | As causas fazem parte do produto e não há administrador da plataforma para gerenciar uma tabela. Apagar o valor faria o Hibernate falhar ao ler vagas já publicadas, salvas ou encerradas com ele. Renomear ou fundir causas exige migrar os dados (`UPDATE`) antes de recriar o CHECK | Definida |
+| D-19 | Login com JWT assinado em HS256 pelo próprio Spring Security (OAuth2 Resource Server + Nimbus). O token leva id, papel e organização e vale 8 horas; a chave vem de `JWT_SEGREDO` | Biblioteca externa (jjwt); sessão no servidor | Menos código próprio: o Spring valida assinatura e expiração sozinho. Sem sessão no servidor, como pede a arquitetura. Sem refresh token no MVP: ao expirar, a pessoa entra de novo | Definida |
+| D-20 | Área da organização: vaga de outra organização responde 404 (não 403); coordenador que não responde pela vaga recebe 403. Rascunho é criado com `rascunho: true`; sem isso a vaga já nasce aberta. Na edição de vaga aberta, o início só precisa ser no futuro se tiver mudado. O responsável aparece na resposta pública como contato | 403 para outra organização; endpoint separado para rascunho | 404 não revela que a vaga existe em outra ONG. O formulário atual publica direto, então o padrão continua compatível. Exigir início futuro sempre travaria a edição de uma vaga já em andamento | Definida |
+| D-21 | Chaves primárias em UUID. O backend gera UUID v7 (ordenado pelo tempo) ao salvar; o banco tem `DEFAULT gen_random_uuid()` para inserções feitas direto no SQL. A massa de demonstração usa ids fixos e legíveis (o 1º dígito diz a tabela: a oportunidade 1 é `40000000-0000-0000-0000-000000000001`) | `BIGINT GENERATED ALWAYS AS IDENTITY` (usado até aqui); híbrido com `bigint` interno e uma coluna `codigo UUID` pública | Ids sequenciais nas URLs revelam o volume de registros e convidam a testar ids vizinhos; a autorização continua sendo a proteção principal, o UUID é uma camada a mais. O id passa a existir antes do INSERT. O v7 cresce com o tempo e não fragmenta os índices como o v4 aleatório. Custo: 16 bytes por chave em vez de 8 e ids menos legíveis. Trocado antes de qualquer ambiente real, editando as migrações como na D-16: quem tem o banco local recria com `docker compose down -v` | Definida |
+| D-22 | Candidatura: o voluntário pode se candidatar a vaga já preenchida (fica pendente, como lista de espera) e não pode depois que a atividade começou. A desistência é um endpoint só (`/candidaturas/{id}/cancelar`): pendente cancela a candidatura; aceita cancela a participação, e o prazo do `parametro` decide entre `CANCELADA` e `CANCELADA_TARDIA`. Depois do início não dá para desistir pelo sistema. O aceite trava a vaga com `SELECT ... FOR UPDATE` antes de contar as vagas | Bloquear candidatura em vaga cheia; dois endpoints de desistência; contar as vagas sem trava | Quem já foi aceito pode desistir a tempo e liberar o lugar para um pendente. Para o voluntário existe uma ação só, "desistir"; a regra de qual registro muda fica no backend. Sem a trava, dois aceites simultâneos leem a mesma contagem e passam do limite (regra 3), o que o teste `CorridaPelaUltimaVagaTest` reproduz | Definida |
+| D-23 | Presença: o responsável da vaga (ou o gestor) registra presença com horas ou ausência, uma vez, depois do fim da atividade e com a vaga aberta ou encerrada. Horas de 0,01 até a duração (fim − início), com duas casas. O registro é definitivo. O histórico do voluntário soma só as horas das presenças | Permitir corrigir o registro; exigir a vaga encerrada antes da presença | Registro definitivo segue o fluxo do DER (PRESENTE e AUSENTE são finais) e mantém o histórico confiável; uma correção pode entrar depois como ação própria, com motivo. Exigir o encerramento antes obrigaria um passo a mais sem ganho: o fim da atividade já marca quando a presença pode ser registrada (Q-05) | Definida |
+| D-24 | Habilidades desejadas na vaga: tabela `oportunidade_habilidade` (V9), até 10 por vaga, do mesmo catálogo do perfil do voluntário. São informativas: não impedem ninguém de se candidatar. O catálogo muda só por migração. O perfil do voluntário passa a ter edição de contato, disponibilidade, habilidades e interesses, e o responsável vê as habilidades de cada candidato | Classificar só por causa (decisão anterior); habilidade como requisito para candidatar-se; catálogo editável na tela | O briefing pede "habilidades desejadas" no cadastro da oportunidade, e o mesmo catálogo permite comparar a vaga com o perfil sem criar matching (fora do escopo). Como requisito, afastaria quem quer aprender (interesses). Sem administrador da plataforma, não há quem cuide de um catálogo editável | Definida |
 
 ## 3. Perguntas de descoberta do briefing
 
 | Pergunta | Proposta da equipe | Status |
 |---|---|---|
-| Quais dados são necessários no perfil do voluntário? | Nome, e-mail, telefone, cidade, disponibilidade em texto e habilidades/interesses. Sem CPF, endereço ou foto | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
-| Quando a candidatura consome uma vaga? | Só quando é aceita. Candidatura pendente não ocupa vaga | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
-| Como tratar desistência de voluntário confirmado? | Ele pode cancelar. Se houver tempo para substituição, a vaga volta. Se for tarde, a participação fica como cancelada tardia e a vaga não volta | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
-| Quais indicadores o coordenador precisa? | Oportunidades abertas, preenchidas e encerradas, mais candidaturas pendentes | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
+| Quais dados são necessários no perfil do voluntário? | Nome, e-mail, telefone, cidade, disponibilidade em texto e habilidades/interesses. Sem CPF, endereço ou foto | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
+| Quando a candidatura consome uma vaga? | Só quando é aceita. Candidatura pendente não ocupa vaga | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
+| Como tratar desistência de voluntário confirmado? | Ele pode cancelar. Se houver tempo para substituição, a vaga volta. Se for tarde, a participação fica como cancelada tardia e a vaga não volta | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
+| Quais indicadores o coordenador precisa? | Oportunidades abertas, preenchidas e encerradas, mais candidaturas pendentes | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
 
 ## 4. Perguntas próprias da equipe
 
 | ID | Pergunta | Proposta | Status |
 |---|---|---|---|
-| Q-01 | Qual o prazo mínimo para a vaga ser devolvida? | Parâmetro do sistema, sugestão de 48 horas antes do início | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
+| Q-01 | Qual o prazo mínimo para a vaga ser devolvida? | Parâmetro do sistema, sugestão de 48 horas antes do início | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
 | Q-02 | Existe o conceito de organização? | Sim. Tabela `organizacao` (DER v2). A ONG se autocadastra e é a dona das vagas. Equipe com dois papéis: `GESTOR` (administrador da ONG) e `COORDENADOR`. Sem administrador da plataforma | Definida pela equipe |
-| Q-03 | Quem foi rejeitado ou cancelou pode se candidatar de novo? | Não. Uma candidatura por voluntário e oportunidade | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
-| Q-04 | O voluntário pode retirar uma candidatura pendente? | Sim, com status cancelada | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
-| Q-05 | Quem encerra a oportunidade? | O coordenador, manualmente. Horas só podem ser registradas depois do fim da ação | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
+| Q-03 | Quem foi rejeitado ou cancelou pode se candidatar de novo? | Não. Uma candidatura por voluntário e oportunidade | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
+| Q-04 | O voluntário pode retirar uma candidatura pendente? | Sim, com status cancelada | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
+| Q-05 | Quem encerra a oportunidade? | O coordenador, manualmente. Horas só podem ser registradas depois do fim da ação | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
 | Q-06 | Quem cria os coordenadores? | O gestor da ONG, que também cria as vagas e define o responsável por cada uma. O coordenador só mexe nas vagas pelas quais responde; o gestor pode operar qualquer vaga da ONG. O voluntário se cadastra sozinho | Definida pela equipe |
-| Q-07 | Uma oportunidade tem mais de uma data? | Não. Uma única ocorrência, com início e fim | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
-| Q-08 | O que acontece com os confirmados se a oportunidade for cancelada? | Continuam no histórico e o cancelamento fica registrado | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
-| Q-09 | As horas registradas podem passar da duração planejada da ação? | Não. O limite é a duração (fim menos início) | Adotada pela equipe, implementada no V1. Aguarda validação do PO |
+| Q-07 | Uma oportunidade tem mais de uma data? | Não. Uma única ocorrência, com início e fim | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
+| Q-08 | O que acontece com os confirmados se a oportunidade for cancelada? | Continuam no histórico e o cancelamento fica registrado | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
+| Q-09 | As horas registradas podem passar da duração planejada da ação? | Não. O limite é a duração (fim menos início) | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
 | Q-10 | Existe vaga remota ou híbrida? | Não. Toda vaga é presencial, com local, cidade e UF obrigatórios | Definida pela equipe |
-| Q-11 | Como a vaga é classificada? | Por causa (Educação, Meio ambiente, Assistência social, Animais, Comunicação), não por habilidade. As habilidades ficam só no perfil do voluntário | Definida pela equipe |
+| Q-11 | Como a vaga é classificada? | Por causa (Educação, Meio ambiente, Assistência social, Animais, Comunicação). Além da causa, a vaga lista as habilidades desejadas, do mesmo catálogo do perfil do voluntário (D-24) | Definida pela equipe |
 | Q-12 | A vaga pode ser salva antes de publicar? | Sim, como rascunho, só com o título. Ao publicar, os demais campos passam a ser obrigatórios | Definida pela equipe |
 
 ## 5. Dúvidas para o professor
 
 - Confirmar as propostas marcadas como "Aguarda validação do PO" (seções 3 e 4).
-- Q-11: o briefing (3.1) pede "habilidades desejadas" na oportunidade. A equipe decidiu classificar a vaga só por causa e manter as habilidades no perfil do voluntário. Confirmar que isso atende ao briefing. Se não atender, volta a tabela `oportunidade_habilidade` por nova migração.
 - Q-02 e Q-06: o briefing cita o ator "Administrador" (gerencia usuários e parâmetros). No DER v2 não há administrador da plataforma: o gestor da ONG cadastra os coordenadores e os parâmetros mudam só por migração. Confirmar que isso atende ao briefing.
 
