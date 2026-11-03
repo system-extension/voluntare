@@ -1,6 +1,5 @@
-import { ArrowRight, Bookmark, Check } from 'lucide-react';
+import { Bookmark, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import useConta from '../../hooks/useConta';
 import useVagasSalvas from '../../hooks/useVagasSalvas';
 import { caminhoBusca } from '../../utils/rotas';
 import Modal from '../ui/Modal';
@@ -10,7 +9,6 @@ import ConteudoOrganizacao from './ConteudoOrganizacao';
 /** Decide o conteúdo da janela aberta por useModal().abrir(tipo, dados). */
 export default function GerenciadorModais({ modal, abrir, fechar }) {
   const navegar = useNavigate();
-  const { entrar } = useConta();
   const { salvar } = useVagasSalvas();
 
   const buscar = (texto = '', local = '') => {
@@ -19,26 +17,6 @@ export default function GerenciadorModais({ modal, abrir, fechar }) {
   };
 
   switch (modal.tipo) {
-    case 'conta':
-      return (
-        <Modal titulo="Seu próximo passo começa aqui" aoFechar={fechar}>
-          <p>Explore as oportunidades e encontre uma causa com a qual você se identifica.</p>
-          <button
-            className="primary-button full-width"
-            onClick={() => {
-              entrar();
-              fechar();
-              navegar('/conta/perfil');
-            }}
-          >
-            Entrar na demonstração <ArrowRight size={20} />
-          </button>
-          <button className="text-button full-width" onClick={() => buscar()}>
-            Continuar sem uma conta
-          </button>
-        </Modal>
-      );
-
     case 'candidatura':
       return (
         <Modal titulo="Candidatura de demonstração" aoFechar={fechar}>

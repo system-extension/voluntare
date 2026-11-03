@@ -1,15 +1,15 @@
-/** Organizações (nova tabela no DER). */
-import { USAR_API_REAL } from './config';
+/** Organizações. */
 import { requisicao } from './cliente';
-import * as banco from './mock/banco';
 
+/**
+ * Lista pública de organizações (modal "Avaliações de ONGs").
+ * Ainda não existe no backend: a tela mostra o erro até o endpoint ser criado.
+ */
 export async function listarOrganizacoes() {
-  if (USAR_API_REAL) return requisicao('/api/organizacoes');
-  return banco.responder(() => banco.organizacoes());
+  return requisicao('/api/organizacoes');
 }
 
-/** Organização em nome da qual o coordenador logado publica. */
+/** Organização do gestor/coordenador logado. */
 export async function buscarMinhaOrganizacao() {
-  if (USAR_API_REAL) return requisicao('/api/organizacao');
-  return banco.responder(() => banco.organizacaoDemonstracao());
+  return requisicao('/api/organizacao');
 }

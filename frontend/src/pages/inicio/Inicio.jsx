@@ -31,7 +31,7 @@ export default function Inicio() {
     <>
       <BarraBusca />
       <section className="welcome" aria-labelledby="welcome-title">
-        <Logo grande />
+        <Logo tamanho="grande" />
         <h1 id="welcome-title">Sua próxima vaga começa aqui</h1>
         <p>Encontre uma oportunidade de voluntariado e faça parte de uma causa.</p>
         <button className="primary-button start-button" onClick={() => buscar()}>

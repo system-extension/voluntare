@@ -8,10 +8,7 @@
   text-align: center;
   padding: 36px 20px 0;
 }
-.wordmark-large {
-  font-size: 84px;
-  letter-spacing: -5.5px;
-  line-height: 1.04;
+.welcome .wordmark {
   margin-bottom: 17px;
 }
 .welcome h1 {
@@ -81,11 +78,6 @@
     min-height: calc(100vh - 190px);
   }
 }
-@media (max-width: 1150px) {
-  .wordmark-large {
-    font-size: 84px;
-  }
-}
 @media (max-width: 640px) {
   .home-main {
     min-height: 0;
@@ -93,9 +85,7 @@
   .welcome {
     padding: 44px 20px 0;
   }
-  .wordmark-large {
-    font-size: 64px;
-    letter-spacing: -4px;
+  .welcome .wordmark {
     margin-bottom: 22px;
   }
   .welcome h1 {

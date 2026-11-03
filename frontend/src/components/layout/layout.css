@@ -248,8 +248,7 @@
     padding: 0 12px;
   }
   .site-header:has(.account-tools) .wordmark {
-    font-size: 26px;
-    letter-spacing: -1.6px;
+    --tamanho: 26px;
   }
   .site-header:has(.account-tools) .mobile-menu-button {
     width: 32px;
@@ -286,4 +285,15 @@
     padding: 12px 0;
     font-size: 14px;
   }
+}
+.account-dropdown strong {
+  overflow-wrap: anywhere;
+}
+.account-dropdown-papel {
+  display: block;
+  padding: 0 10px 12px;
+  margin: -8px 0 6px;
+  border-bottom: 1px solid #e4e2e0;
+  color: var(--muted);
+  font-size: 14px;
 }

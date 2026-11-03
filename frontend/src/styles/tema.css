@@ -95,12 +95,22 @@ a:hover {
   top: 12px;
 }
 .wordmark {
+  /* Só --tamanho muda entre os usos. O espaçamento é em em (proporcional à fonte):
+     com valor fixo em px, a marca ficava espremida nos tamanhos menores. */
+  --tamanho: 32px;
   color: var(--primary-dark);
-  font-size: 32px;
+  font-size: var(--tamanho);
   font-weight: 800;
-  letter-spacing: -1.8px;
+  letter-spacing: -0.06em;
   line-height: 1.1;
   display: inline-block;
+}
+.wordmark-medio {
+  --tamanho: 48px;
+}
+.wordmark-grande {
+  --tamanho: 84px;
+  line-height: 1.04;
 }
 .wordmark-dot {
   color: var(--primary);
@@ -189,7 +199,6 @@ a:hover {
   right: 12px;
 }
 .modal .wordmark {
-  font-size: 32px;
   margin-bottom: 30px;
 }
 .modal h2 {
@@ -243,13 +252,16 @@ a:hover {
   margin: 12px 0 20px;
 }
 @media (max-width: 1150px) {
-  .wordmark {
-    font-size: 29px;
+  .site-header .wordmark {
+    --tamanho: 29px;
   }
 }
 @media (max-width: 640px) {
-  .wordmark {
-    font-size: 30px;
+  .site-header .wordmark {
+    --tamanho: 30px;
+  }
+  .wordmark-grande {
+    --tamanho: 64px;
   }
   .modal-inner {
     padding: 30px 24px;

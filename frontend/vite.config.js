@@ -1,15 +1,31 @@
 import process from 'node:process';
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// No GitHub Pages o site fica em /voluntare/; localmente continua na raiz.
-// Em desenvolvimento, /api vai para o Spring (porta 8080): o navegador enxerga um endereço só, sem CORS.
-export default defineConfig({
-  base: process.env.VITE_BASE || '/',
-  plugins: [react()],
-  server: {
-    proxy: {
-      '/api': 'http://localhost:8080',
+/**
+ * Variáveis em .env / .env.local (ver .env.example):
+ *   VITE_BASE   pasta do site no servidor (no GitHub Pages: /voluntare/)
+ *   API_ALVO    para onde o proxy do `npm run dev` repassa /api (padrão: o Spring local)
+ * API_ALVO não tem o prefixo VITE_, então nunca vai para o código do navegador:
+ * só o servidor de desenvolvimento conhece o endereço do backend.
+ */
+export default defineConfig(({ mode }) => {
+  const env = { ...loadEnv(mode, process.cwd(), ''), ...process.env };
+
+  return {
+    base: env.VITE_BASE || '/',
+    plugins: [react()],
+    server: {
+      proxy: {
+        '/api': {
+          target: env.API_ALVO || 'http://localhost:8080',
+          changeOrigin: true,
+          // O navegador acha que fala com o próprio Vite (mesma origem), então para ele não há CORS.
+          // Tirar o Origin faz o Spring tratar a chamada como de mesma origem também; sem isso,
+          // ele compara a origem (127.0.0.1:5173) com CORS_ORIGENS e recusa com 403.
+          configure: (proxy) => proxy.on('proxyReq', (req) => req.removeHeader('origin')),
+        },
+      },
     },
-  },
+  };
 });

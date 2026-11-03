@@ -1,12 +1,12 @@
 /**
- * Chave única que decide de onde vêm os dados:
- *   - false (padrão): modo demonstração. Os dados ficam no navegador (src/api/mock).
- *   - true: chama o backend Spring de verdade (/api/...).
+ * Endereço da API, lido do ambiente (frontend/.env.local; modelo em .env.example).
  *
- * Para ligar: criar frontend/.env.local com a linha  VITE_USAR_API=true
- * Nenhuma tela muda: elas só conhecem as funções desta pasta.
+ * Vazio (padrão): as chamadas vão para "/api/..." no mesmo endereço do site.
+ *   - `npm run dev`: o proxy do Vite repassa para o backend (API_ALVO).
+ *   - produção: o servidor que entrega o site repassa /api para o backend.
+ * Preenchido (ex.: https://api.voluntare.app): o navegador chama a API direto,
+ *   e o backend precisa liberar a origem do site em CORS_ORIGENS.
+ *
+ * As telas e os arquivos de src/api não sabem qual é o caso: só o cliente.js usa isto.
  */
-export const USAR_API_REAL = import.meta.env.VITE_USAR_API === 'true';
-
-/** Simula a demora da rede no modo demonstração, para as telas já tratarem "carregando". */
-export const ATRASO_MOCK_MS = 200;
+export const URL_API = (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '');
