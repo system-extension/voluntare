@@ -123,7 +123,7 @@ Todas as rotas estão documentadas no Swagger. Resumo:
 | Área | Rotas | Acesso |
 |---|---|---|
 | Busca pública | `GET /api/oportunidades`, `GET /api/oportunidades/{id}`, `GET /api/habilidades` | Público |
-| Autenticação | `POST /api/auth/cadastro`, `POST /api/auth/cadastro-organizacao`, `POST /api/auth/login`, `GET /api/auth/eu` | Público / logado |
+| Autenticação | `POST /api/auth/verificar-email`, `POST /api/auth/cadastro`, `POST /api/auth/cadastro-organizacao`, `POST /api/auth/login`, `GET /api/auth/eu` | Público / logado |
 | Perfil do voluntário | `GET` e `PUT /api/voluntarios/eu` | Voluntário |
 | Área da organização | `GET /api/organizacao`, `GET /api/organizacao/oportunidades` (+ `/{id}`, `/{id}/historico`, `/{id}/candidaturas`) | Gestor ou coordenador |
 | Vagas | `POST /api/oportunidades`, `PUT /api/oportunidades/{id}`, `POST /api/oportunidades/{id}/publicar`, `/encerrar`, `/cancelar` | Gestor cria; responsável ou gestor alteram |

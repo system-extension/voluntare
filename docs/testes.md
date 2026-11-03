@@ -53,7 +53,7 @@ O `mvnw verify` gera o relatório do JaCoCo em `backend/target/site/jacoco/index
 |---|---|---|
 | `banco/RestricoesBancoTest` | Integração | O banco recusa sozinho os dados que quebram o DER: papéis, FK composta do responsável, vaga incompleta, causa, vagas, período, candidatura duplicada, decisão, horas, histórico, exclusão física, habilidades |
 | `banco/CargaDemonstracaoTest` | Integração | A massa de demonstração respeita as regras que ficam no service (vagas, histórico coerente, horas dentro da duração) |
-| `auth/AuthControllerTest` | Integração | Cadastro do voluntário e da ONG, login, e-mail sem diferenciar maiúsculas, conta desativada, 401 |
+| `auth/AuthControllerTest` | Integração | Verificação do e-mail (só diz se existe), cadastro do voluntário e da ONG, login, e-mail sem diferenciar maiúsculas, conta desativada, 401 |
 | `oportunidade/OportunidadeControllerTest` | Integração | Busca pública: só abertas e futuras, ordem, vagas disponíveis, filtros sem acento, paginação, detalhe, habilidades, CORS, Swagger |
 | `oportunidade/GestaoOportunidadeControllerTest` | Integração | Criar, rascunho, publicar, editar, encerrar, cancelar, responsável, habilidades desejadas, histórico, acesso |
 | `candidatura/CandidaturaControllerTest` | Integração | Candidatar, aceitar, rejeitar, desistir (com o prazo), listas do voluntário e da ONG |
