@@ -1,0 +1,67 @@
+/* Seletor próprio (ver Seletor.jsx). Mesma altura e borda dos campos de texto. */
+.seletor {
+  position: relative;
+}
+.seletor-botao {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  border: 1px solid #949494;
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+.seletor-botao:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 0;
+  border-color: var(--primary);
+}
+.seletor-botao[aria-invalid='true'] {
+  border-color: #c4302b;
+}
+.seletor-vazio span {
+  color: #767676;
+}
+.seletor-botao svg {
+  color: var(--muted);
+  transition: transform 0.15s ease;
+}
+.seletor-seta-aberta {
+  transform: rotate(180deg);
+}
+.seletor-lista {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 40;
+  max-height: 232px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px #0000001f;
+}
+.seletor-lista li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.seletor-lista li.seletor-ativa {
+  background: var(--tint);
+}
+.seletor-lista li[aria-selected='true'] {
+  font-weight: 700;
+  color: var(--primary);
+}
