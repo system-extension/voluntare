@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { cadastrarVoluntario, login, usuarioLogado } from '../api/auth';
+import { cadastrarOrganizacao, cadastrarVoluntario, login, usuarioLogado } from '../api/auth';
 import {
   CHAVE_SESSAO,
   EVENTO_SESSAO_EXPIRADA,
@@ -50,6 +50,11 @@ export default function ProvedorConta({ children }) {
   const cadastrar = useCallback(
     async ({ nome, email, senha }) =>
       iniciar(await cadastrarVoluntario({ nome: nome.trim(), email: email.trim(), senha })),
+    [iniciar],
+  );
+
+  const cadastrarOng = useCallback(
+    async (dados) => iniciar(await cadastrarOrganizacao(dados)),
     [iniciar],
   );
 
@@ -110,13 +115,14 @@ export default function ProvedorConta({ children }) {
       logado: sessao !== null,
       entrar,
       cadastrar,
+      cadastrarOng,
       sair,
       perfil,
       setPerfil,
       preferencias,
       setPreferencias,
     }),
-    [sessao, entrar, cadastrar, sair, perfil, preferencias],
+    [sessao, entrar, cadastrar, cadastrarOng, sair, perfil, preferencias],
   );
 
   return <ContextoConta.Provider value={valor}>{children}</ContextoConta.Provider>;

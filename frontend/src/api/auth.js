@@ -19,6 +19,14 @@ export function cadastrarVoluntario({ nome, email, senha }) {
   return requisicao('/api/auth/cadastro', { metodo: 'POST', corpo: { nome, email, senha } });
 }
 
+/**
+ * Autocadastro da ONG com o seu gestor (CadastroOrganizacaoRequest). Já devolve a sessão do gestor.
+ * @param {{organizacao: object, gestor: {nome: string, email: string, senha: string}}} dados
+ */
+export function cadastrarOrganizacao(dados) {
+  return requisicao('/api/auth/cadastro-organizacao', { metodo: 'POST', corpo: dados });
+}
+
 /** Confere no banco quem é o dono do token (conta desativada depois do login cai aqui). */
 export function usuarioLogado() {
   return requisicao('/api/auth/eu');

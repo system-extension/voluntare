@@ -2,12 +2,17 @@ import { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 
 /** Campo com rótulo, erro ligado por aria-describedby e dica opcional. */
-export function Campo({ id, rotulo, erro, dica, children }) {
+export function Campo({ id, rotulo, erro, dica, opcional = false, children }) {
   const descricao = [erro && `${id}-erro`, dica && `${id}-dica`].filter(Boolean).join(' ');
   return (
     <div className="acesso-campo">
       <label htmlFor={id}>
-        {rotulo} <span aria-hidden="true">*</span>
+        {rotulo}{' '}
+        {opcional ? (
+          <span className="acesso-opcional">(opcional)</span>
+        ) : (
+          <span aria-hidden="true">*</span>
+        )}
       </label>
       {children({ id, 'aria-invalid': Boolean(erro), 'aria-describedby': descricao || undefined })}
       {dica && !erro && (
@@ -25,7 +30,16 @@ export function Campo({ id, rotulo, erro, dica, children }) {
 }
 
 /** Senha com botão de mostrar/esconder. `novaSenha` muda o autocomplete (gerenciador de senhas). */
-export function CampoSenha({ id, rotulo = 'Senha', valor, aoAlterar, erro, dica, novaSenha }) {
+export function CampoSenha({
+  id,
+  rotulo = 'Senha',
+  valor,
+  aoAlterar,
+  erro,
+  dica,
+  novaSenha,
+  semFoco = false,
+}) {
   const [visivel, setVisivel] = useState(false);
   return (
     <Campo id={id} rotulo={rotulo} erro={erro} dica={dica}>
@@ -35,7 +49,7 @@ export function CampoSenha({ id, rotulo = 'Senha', valor, aoAlterar, erro, dica,
             {...attrs}
             type={visivel ? 'text' : 'password'}
             autoComplete={novaSenha ? 'new-password' : 'current-password'}
-            autoFocus
+            autoFocus={!semFoco}
             value={valor}
             onChange={aoAlterar}
           />

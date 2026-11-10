@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { verificarEmail } from '../../api/auth';
 import useConta from '../../hooks/useConta';
 import useTitulo from '../../hooks/useTitulo';
@@ -177,6 +177,11 @@ export default function Entrar() {
           {botaoEnviar('Continuar', 'Verificando…', !dados.email.trim())}
         </form>
       )}
+      {etapa === 'email' && (
+        <p className="acesso-rodape-cartao">
+          É uma organização? <Link to="/cadastro-organizacao">Cadastre a sua ONG</Link>
+        </p>
+      )}
 
       {etapa === 'senha' && (
         <form onSubmit={entrarComSenha} noValidate>
@@ -214,6 +219,12 @@ export default function Entrar() {
             novaSenha
           />
           {botaoEnviar('Criar conta', 'Criando a conta…')}
+          <p className="acesso-rodape-cartao">
+            Vai cadastrar uma organização?{' '}
+            <Link to="/cadastro-organizacao" state={{ email: dados.email.trim() }}>
+              Cadastre a ONG com este e-mail
+            </Link>
+          </p>
           <p className="acesso-legal">
             Ao criar a conta, você concorda com os termos de uso e a política de privacidade do
             Voluntare.

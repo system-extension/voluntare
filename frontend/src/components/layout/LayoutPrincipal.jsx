@@ -8,6 +8,7 @@ import './layout.css';
 function classeDoConteudo(pathname) {
   if (pathname === '/') return 'home-main';
   if (pathname.startsWith('/conta')) return 'account-main';
+  if (pathname === '/para-organizacoes') return 'landing-main';
   return 'results-main';
 }
 

@@ -69,7 +69,7 @@ form .acesso-legal {
   padding: 2px 8px;
   border-radius: 10px;
   background: #ecebea;
-  color: var(--muted);
+  color: #f5a623;
 }
 .acesso-divisor {
   display: flex;
@@ -175,7 +175,8 @@ form .acesso-legal {
   padding: 20px 24px;
   font-size: 13px;
   color: var(--muted);
-  text-align: center;
+  text-align: start;
+  border-top: 1px solid #e4e2e0;
 }
 @media (max-width: 520px) {
   .acesso-conteudo {
@@ -184,5 +185,116 @@ form .acesso-legal {
   .acesso-cartao {
     border: 0;
     padding: 0;
+  }
+}
+
+/* Cadastro da organização: três etapas curtas. */
+.acesso-linha {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 14px;
+}
+.acesso-campo textarea {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  border: 1px solid #949494;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+}
+.acesso-campo textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+.acesso-campo textarea:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 0;
+  border-color: var(--primary);
+}
+.acesso-campo textarea[aria-invalid='true'] {
+  border-color: #c4302b;
+}
+.acesso-opcional {
+  font-weight: 400;
+  color: var(--muted);
+  font-size: 14px;
+}
+.acesso-progresso {
+  margin-bottom: 35px;
+}
+.acesso-progresso-texto {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+.acesso-progresso ol {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.acesso-progresso li {
+  border-top: 4px solid #e4e2e0;
+  padding-top: 8px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.acesso-progresso li.acesso-progresso-feita,
+.acesso-progresso li.acesso-progresso-atual {
+  border-top-color: var(--primary);
+}
+.acesso-progresso-atual span {
+  font-weight: 700;
+  color: #2d2d2d;
+}
+.acesso-progresso-feita button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 14px;
+}
+.acesso-progresso-feita button:hover {
+  text-decoration: underline;
+}
+.acesso-navegacao {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+.acesso-navegacao .primary-button {
+  margin-left: auto;
+  min-width: 180px;
+}
+.acesso-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--primary);
+  padding: 10px 4px;
+}
+.acesso-rodape-cartao {
+  margin: 22px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid #e4e2e0;
+  text-align: center;
+  font-size: 15px;
+  color: var(--muted);
+}
+.acesso-rodape-cartao a {
+  color: var(--primary);
+  font-weight: 700;
+}
+@media (max-width: 520px) {
+  .acesso-linha {
+    grid-template-columns: 1fr 96px;
   }
 }

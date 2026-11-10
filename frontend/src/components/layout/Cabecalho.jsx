@@ -29,6 +29,8 @@ export default function Cabecalho() {
     sair();
     navegar('/');
   };
+  // Gestor/coordenador vai para a sua área; os demais conhecem a proposta antes de cadastrar.
+  const areaDaOng = ehDaOrganizacao(usuario) ? '/organizacao' : '/para-organizacoes';
   const info = (titulo) => {
     setMenuAberto(false);
     abrir('info', { titulo });
@@ -65,7 +67,7 @@ export default function Cabecalho() {
               </button>
             </>
           )}
-          <button className="employers" onClick={() => irPara('/organizacao')}>
+          <button className="employers" onClick={() => irPara(areaDaOng)}>
             ONGs/Anunciar vagas
           </button>
         </nav>
@@ -83,7 +85,7 @@ export default function Cabecalho() {
           <button onClick={() => irPara('/')}>Página inicial</button>
           <button onClick={() => info('Conheça as organizações')}>Avaliações de ONGs</button>
           <button onClick={() => irPara('/oportunidades')}>Causas e oportunidades</button>
-          <button onClick={() => irPara('/organizacao')}>ONGs/Anunciar vagas</button>
+          <button onClick={() => irPara(areaDaOng)}>ONGs/Anunciar vagas</button>
           {usuario ? (
             <button onClick={encerrarSessao}>Sair</button>
           ) : (

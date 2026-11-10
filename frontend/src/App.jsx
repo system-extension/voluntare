@@ -15,6 +15,8 @@ import Mensagens from './pages/conta/Mensagens';
 import Notificacoes from './pages/conta/Notificacoes';
 import LayoutAcesso from './pages/entrar/LayoutAcesso';
 import Entrar from './pages/entrar/Entrar';
+import CadastroOrganizacao from './pages/entrar/CadastroOrganizacao';
+import ParaOrganizacoes from './pages/para-organizacoes/ParaOrganizacoes';
 import NaoEncontrada from './pages/NaoEncontrada';
 import { PAPEIS_ORGANIZACAO } from './utils/papeis';
 
@@ -32,11 +34,13 @@ export default function App() {
             <Routes>
               <Route element={<LayoutAcesso />}>
                 <Route path="entrar" element={<Entrar />} />
+                <Route path="cadastro-organizacao" element={<CadastroOrganizacao />} />
               </Route>
 
               <Route element={<LayoutPrincipal />}>
                 <Route index element={<Inicio />} />
                 <Route path="oportunidades" element={<Oportunidades />} />
+                <Route path="para-organizacoes" element={<ParaOrganizacoes />} />
 
                 <Route element={<RotaProtegida papeis={PAPEIS_ORGANIZACAO} />}>
                   <Route path="organizacao" element={<AreaOrganizacao />} />

@@ -2,7 +2,8 @@ import { useContext } from 'react';
 import { ContextoConta } from '../context/contextos';
 
 /**
- * Sessão do usuário: { usuario, logado, entrar(email, senha), cadastrar({ nome, email, senha }), sair() }.
+ * Sessão do usuário: { usuario, logado, entrar(email, senha), cadastrar({ nome, email, senha }),
+ *   cadastrarOng({ organizacao, gestor }), sair() }.
  * `usuario` é o UsuarioResponse do backend: id, nome, email, papel e organizacao.
  */
 export default function useConta() {
