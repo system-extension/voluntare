@@ -571,3 +571,10 @@
   color: #9b2c2c;
   background: #fbeaea;
 }
+
+.ong-field-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}

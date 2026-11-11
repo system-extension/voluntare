@@ -52,6 +52,23 @@ export default function FormularioOportunidade() {
   );
 }
 
+/** Mesma regra do backend (pendenciasDoPeriodo): a ação acontece num dia só, término depois do início. */
+function erroDoPeriodo(horaInicio, horaFim) {
+  if (horaInicio && horaFim && horaFim <= horaInicio)
+    return 'O término precisa ser depois do início.';
+  return undefined;
+}
+
+/** "Duração: 2h30" quando o período é válido; ajuda a perceber um horário digitado errado. */
+function duracao(horaInicio, horaFim) {
+  if (!horaInicio || !horaFim || horaFim <= horaInicio) return undefined;
+  const minutos = (texto) => Number(texto.slice(0, 2)) * 60 + Number(texto.slice(3, 5));
+  const total = minutos(horaFim) - minutos(horaInicio);
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return `Duração: ${h ? `${h}h` : ''}${m ? String(m).padStart(h ? 2 : 1, '0') + (h ? '' : ' min') : ''}`;
+}
+
 function Editor({ id, organizacao, inicial }) {
   const navegar = useNavigate();
   const [form, setForm] = useState(inicial);
@@ -64,8 +81,17 @@ function Editor({ id, organizacao, inicial }) {
 
   function atualizar(e) {
     const { name, value } = e.target;
-    setForm((atual) => ({ ...atual, [name]: value }));
-    setErros((atual) => ({ ...atual, [name]: undefined }));
+    const novo = { ...form, [name]: value };
+    setForm(novo);
+    setErros((atual) => {
+      const erros = { ...atual, [name]: undefined };
+      // O horário é conferido na hora, não só ao publicar: com os dois preenchidos,
+      // um término antes do início já aparece em vermelho enquanto a pessoa escolhe.
+      if (name === 'horaInicio' || name === 'horaFim') {
+        erros.horaFim = erroDoPeriodo(novo.horaInicio, novo.horaFim);
+      }
+      return erros;
+    });
   }
 
   function focarPrimeiroErro() {
@@ -105,14 +131,22 @@ function Editor({ id, organizacao, inicial }) {
     }
   }
 
-  function campo(name, label, { type = 'text', placeholder, maxLength = 120, options } = {}) {
+  function campo(
+    name,
+    label,
+    { type = 'text', placeholder, maxLength = 120, options, dica, extra = {} } = {},
+  ) {
+    const descricao = [erros[name] && `erro-${name}`, dica && !erros[name] && `dica-${name}`]
+      .filter(Boolean)
+      .join(' ');
     const attrs = {
       id: `ong-${name}`,
       name,
       value: form[name],
       onChange: atualizar,
       'aria-invalid': !!erros[name],
-      'aria-describedby': erros[name] ? `erro-${name}` : undefined,
+      'aria-describedby': descricao || undefined,
+      ...extra,
     };
     return (
       <div className="ong-field">
@@ -135,6 +169,11 @@ function Editor({ id, organizacao, inicial }) {
             placeholder={placeholder}
             {...(type === 'number' ? { min: 1, max: 999, step: 1 } : {})}
           />
+        )}
+        {dica && !erros[name] && (
+          <span className="ong-field-hint" id={`dica-${name}`}>
+            {dica}
+          </span>
         )}
         {erros[name] && (
           <span className="ong-field-error" id={`erro-${name}`}>
@@ -208,7 +247,12 @@ function Editor({ id, organizacao, inicial }) {
             {campo('data', 'Data da ação', { type: 'date' })}
             <div className="ong-field-grid">
               {campo('horaInicio', 'Início', { type: 'time' })}
-              {campo('horaFim', 'Término', { type: 'time' })}
+              {campo('horaFim', 'Término', {
+                type: 'time',
+                // min: o seletor do navegador já sugere horários depois do início.
+                extra: { min: form.horaInicio || undefined },
+                dica: duracao(form.horaInicio, form.horaFim),
+              })}
             </div>
           </section>
 
