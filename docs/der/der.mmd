@@ -1,0 +1,105 @@
+erDiagram
+    ORGANIZACAO ||--o{ USUARIO : "tem na equipe"
+    ORGANIZACAO ||--o{ OPORTUNIDADE : "publica"
+    USUARIO ||--o| PERFIL_VOLUNTARIO : "possui"
+    USUARIO ||--o{ OPORTUNIDADE : "responde por"
+    PERFIL_VOLUNTARIO ||--o{ CANDIDATURA : "envia"
+    OPORTUNIDADE ||--o{ CANDIDATURA : "recebe"
+    CANDIDATURA ||--o| PARTICIPACAO : "gera quando aceita"
+    PERFIL_VOLUNTARIO ||--o{ VOLUNTARIO_HABILIDADE : "informa"
+    HABILIDADE ||--o{ VOLUNTARIO_HABILIDADE : "classifica"
+    USUARIO |o--o{ CANDIDATURA : "decide"
+    USUARIO |o--o{ PARTICIPACAO : "registra"
+    USUARIO ||--o{ HISTORICO_STATUS : "altera"
+    OPORTUNIDADE |o--o{ HISTORICO_STATUS : "tem"
+    CANDIDATURA |o--o{ HISTORICO_STATUS : "tem"
+    PARTICIPACAO |o--o{ HISTORICO_STATUS : "tem"
+
+    ORGANIZACAO {
+        bigint id PK
+        varchar nome UK "único por lower(nome)"
+        text descricao
+        varchar cidade
+        char uf "2 letras"
+        varchar email
+        varchar telefone
+        boolean ativa
+        timestamptz criado_em
+    }
+    USUARIO {
+        bigint id PK
+        bigint organizacao_id FK "obrigatória em GESTOR e COORDENADOR, nula em VOLUNTARIO"
+        varchar nome
+        varchar email UK "único por lower(email)"
+        varchar senha_hash
+        varchar papel "VOLUNTARIO, COORDENADOR, GESTOR"
+        boolean ativo
+        timestamptz criado_em
+    }
+    PERFIL_VOLUNTARIO {
+        bigint usuario_id PK, FK
+        varchar telefone
+        varchar cidade
+        text disponibilidade
+    }
+    HABILIDADE {
+        bigint id PK
+        varchar nome UK
+    }
+    VOLUNTARIO_HABILIDADE {
+        bigint voluntario_id PK, FK
+        bigint habilidade_id PK, FK
+        varchar tipo "HABILIDADE, INTERESSE"
+    }
+    OPORTUNIDADE {
+        bigint id PK
+        bigint organizacao_id FK
+        bigint responsavel_id FK "gestor ou coordenador da mesma organização"
+        varchar titulo
+        text descricao "obrigatórios fora de RASCUNHO e CANCELADA"
+        text atividades
+        text requisitos
+        varchar causa "EDUCACAO, MEIO_AMBIENTE, ASSISTENCIA_SOCIAL, ANIMAIS, COMUNICACAO"
+        varchar local "presencial"
+        varchar cidade
+        char uf "2 letras"
+        timestamptz inicio
+        timestamptz fim "maior que inicio"
+        int vagas "de 1 a 999"
+        varchar status "RASCUNHO, ABERTA, ENCERRADA, CANCELADA"
+        timestamptz criado_em
+    }
+    CANDIDATURA {
+        bigint id PK
+        bigint oportunidade_id FK
+        bigint voluntario_id FK
+        varchar status "PENDENTE, ACEITA, REJEITADA, CANCELADA"
+        timestamptz criado_em
+        timestamptz decidido_em "só em ACEITA ou REJEITADA"
+        bigint decidido_por FK "só em ACEITA ou REJEITADA"
+    }
+    PARTICIPACAO {
+        bigint id PK
+        bigint candidatura_id FK, UK
+        varchar status "CONFIRMADA, PRESENTE, AUSENTE, CANCELADA, CANCELADA_TARDIA"
+        decimal horas_realizadas "nula ou maior que 0, obrigatória em PRESENTE"
+        timestamptz registrado_em "só em PRESENTE ou AUSENTE"
+        bigint registrado_por FK "só em PRESENTE ou AUSENTE"
+        timestamptz cancelado_em "só em CANCELADA e CANCELADA_TARDIA"
+    }
+    HISTORICO_STATUS {
+        bigint id PK
+        bigint oportunidade_id FK "só uma das três FKs preenchida"
+        bigint candidatura_id FK
+        bigint participacao_id FK
+        varchar status_anterior "nulo só na criação"
+        varchar status_novo
+        bigint alterado_por FK
+        timestamptz alterado_em
+        varchar observacao
+    }
+    PARAMETRO {
+        varchar chave PK
+        varchar valor
+        varchar descricao
+    }
