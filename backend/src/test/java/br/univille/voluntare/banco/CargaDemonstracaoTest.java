@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import br.univille.voluntare.TestcontainersConfiguration;
 
 /**
- * Confere que a massa de demonstração (V2) respeita as regras que ficam no service,
+ * Confere que a massa de demonstração (V8) respeita as regras que ficam no service,
  * já que ela entra direto pelo SQL. Cada consulta lista o que quebraria a regra e deve voltar vazia.
  */
 @SpringBootTest
@@ -137,12 +138,13 @@ class CargaDemonstracaoTest {
     }
 
     @Test
-    void identidadesContinuamDepoisDaCarga() {
-        Long novoId = jdbc.queryForObject("""
+    void bancoGeraUuidQuandoOIdNaoEhInformado() {
+        // Fallback do DEFAULT gen_random_uuid() para quem insere direto no SQL (D-21)
+        UUID novoId = jdbc.queryForObject("""
                 INSERT INTO habilidade (nome) VALUES ('Habilidade criada no teste') RETURNING id
-                """, Long.class);
+                """, UUID.class);
 
-        assertThat(novoId).isGreaterThan(10L);
+        assertThat(novoId).isNotNull();
         jdbc.update("DELETE FROM habilidade WHERE id = ?", novoId);
     }
 
