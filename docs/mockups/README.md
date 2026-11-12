@@ -1,8 +1,15 @@
 # Mockups e fluxo de telas
 
-Os mockups de baixa fidelidade serão feitos no Figma. Exportar os PNGs para esta pasta e colocar o link do arquivo abaixo.
+Mockups de baixa fidelidade feitos no Figma e exportados em PDF nesta pasta:
 
-Link do Figma: _a preencher_
+- [01 • Página inicial](01%20%E2%80%A2%20P%C3%A1gina%20inicial.pdf)
+- [02 • Vagas e detalhes](02%20%E2%80%A2%20Vagas%20e%20detalhes.pdf)
+- [03 • Perfil](03%20%E2%80%A2%20Perfil.pdf)
+- [04 • Preferências](04%20%E2%80%A2%20Prefer%C3%AAncias.pdf)
+- [05 • Minhas vagas](05%20%E2%80%A2%20Minhas%20vagas.pdf)
+- [07 • Notificações](07%20%E2%80%A2%20Notifica%C3%A7%C3%B5es.pdf)
+- [08 • Painel da ONG](08%20%E2%80%A2%20Painel%20da%20ONG.pdf)
+- [09 • Anunciar vaga](09%20%E2%80%A2%20Anunciar%20vaga.pdf)
 
 ## Telas por perfil
 
