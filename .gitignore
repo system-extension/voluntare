@@ -1,23 +1,7 @@
-# Dependências
-node_modules/
 target/
-
-# Build
-frontend/dist/
-
-# IDEs
+node_modules/
+dist/
 .idea/
 .vscode/
-*.iml
-
-# Ambiente
-.env
-.env.local
-
-# Logs
 *.log
-
-# Sistema
-.DS_Store
-Thumbs.db
-.docs
+.env

@@ -1,6 +1,6 @@
 # Voluntare — frontend
 
-Interface em React e Vite, inspirada no layout do Indeed e adaptada ao voluntariado. A identidade utiliza verde.
+Interface em React e Vite para a busca e a divulgação de oportunidades de voluntariado. A identidade utiliza verde.
 
 ## Executar localmente
 
@@ -26,8 +26,8 @@ Abra o endereço informado pelo servidor. Para gerar a versão de produção, ex
 
 Os anúncios da organização são guardados em `localStorage` sob a chave `voluntare-organization-jobs-v1`. Não são publicados na internet nem compartilhados entre dispositivos. A rota direta é `/?screen=organization`.
 
-Para conhecer as telas da área de conta, clique em **Acessar → Entrar na demonstração**. Perfil e preferências usam exemplos fictícios; não há autenticação ou conexão com o Indeed. A seleção de currículo não transmite nem armazena o arquivo.
+Para conhecer as telas da área de conta, clique em **Acessar → Entrar na demonstração**. Perfil e preferências usam exemplos fictícios; ainda não há autenticação. A seleção de currículo não transmite nem armazena o arquivo.
 
-As 30 oportunidades e organizações em `src/data.js` são fictícias. Login, publicação e envio de candidaturas ainda não estão integrados ao backend; a interface informa essa limitação e não coleta credenciais. Não existe associação com o Indeed.
+As 30 oportunidades e organizações em `src/data.js` são fictícias. Login, publicação e envio de candidaturas ainda não estão integrados ao backend; a interface informa essa limitação e não coleta credenciais.
 
 Nenhuma publicação ou configuração de serviço externo é necessária para executar este frontend.

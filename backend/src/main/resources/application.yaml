@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: voluntare
+
+  # Valores padrão batem com o compose.yaml. Em outro ambiente, sobrescreva pelas variáveis.
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:${DB_PORT:5432}/voluntare}
+    username: ${DB_USER:voluntare}
+    password: ${DB_PASSWORD:voluntare}
+
+  jpa:
+    # O schema é responsabilidade do Flyway (D-05). O Hibernate só confere se as entidades batem com ele.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    locations: classpath:db/migration
