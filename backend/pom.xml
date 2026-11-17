@@ -23,6 +23,8 @@
             que exige API 1.44 ou maior. A 1.21.4 corrige isso.
         -->
         <testcontainers.version>1.21.4</testcontainers.version>
+        <springdoc.version>2.8.17</springdoc.version>
+        <jacoco.version>0.8.15</jacoco.version>
     </properties>
 
     <dependencies>
@@ -36,6 +38,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- Documentação da API: Swagger UI em /swagger-ui.html (linha 2.x é a do Spring Boot 3) -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
         </dependency>
 
         <dependency>
@@ -96,10 +105,15 @@
             <scope>test</scope>
         </dependency>
 
-        <!--
-            Entra em feature/setup-seguranca:
-              spring-boot-starter-security
-        -->
+        <!-- Segurança: login com JWT. O resource server valida o token; o encoder (Nimbus) vem junto -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -114,6 +128,37 @@
                             <artifactId>lombok</artifactId>
                         </path>
                     </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <!--
+                Cobertura de testes (evidência de testes do briefing).
+                O mvnw verify gera o relatório em target/site/jacoco/index.html.
+            -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>preparar-agente</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>relatorio</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludes>
+                        <!-- Ponto de entrada e configuração: não têm regra a cobrir -->
+                        <exclude>br/univille/voluntare/VoluntareApplication.class</exclude>
+                        <exclude>br/univille/voluntare/shared/config/OpenApiConfig.class</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
             <plugin>
