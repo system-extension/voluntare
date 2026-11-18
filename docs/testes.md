@@ -60,6 +60,8 @@ O `mvnw verify` gera o relatório do JaCoCo em `backend/target/site/jacoco/index
 | `candidatura/CorridaPelaUltimaVagaTest` | Integração | Concorrência no aceite (regra 3) |
 | `participacao/ParticipacaoControllerTest` | Integração | Presença, ausência, horas, histórico do voluntário |
 | `voluntario/VoluntarioControllerTest` | Integração | Perfil, habilidades e interesses, catálogo |
+| `organizacao/EquipeControllerTest` | Integração | Equipe: listar, cadastrar coordenador, desativar com troca de responsável, permissões |
+| `dashboard/PainelControllerTest` | Integração | Números do painel do gestor, do coordenador e de outra ONG; acesso só da equipe |
 | `oportunidade/entity/StatusOportunidadeTest` | Unitário | Fluxo de status da vaga (10 transições) |
 | `oportunidade/entity/OportunidadeTest` | Unitário | Campos para publicar, início no futuro, período, texto em branco, fluxo |
 | `participacao/entity/ParticipacaoTest` | Unitário | Regra 6 nos dois lados do prazo e no limite exato; presença definitiva |
@@ -72,4 +74,3 @@ O `mvnw verify` gera o relatório do JaCoCo em `backend/target/site/jacoco/index
 ## Ainda sem teste automatizado
 
 - Telas do frontend (a integração com a API começa na Sprint 03).
-- Painel da ONG e equipe (endpoints ainda não implementados).

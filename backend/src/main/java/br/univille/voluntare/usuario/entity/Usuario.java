@@ -76,6 +76,14 @@ public class Usuario {
         return new Usuario(organizacao, nome, email, senhaHash, Papel.GESTOR);
     }
 
+    public static Usuario coordenador(Organizacao organizacao, String nome, String email, String senhaHash) {
+        return new Usuario(organizacao, nome, email, senhaHash, Papel.COORDENADOR);
+    }
+
+    public void desativar() {
+        this.ativo = false;
+    }
+
     public void renomear(String nome) {
         this.nome = nome;
     }
