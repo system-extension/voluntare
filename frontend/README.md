@@ -1,10 +1,13 @@
-# Voluntare — frontend
+# Voluntare · frontend
 
-Interface em React e Vite para a busca e a divulgação de oportunidades de voluntariado. A identidade utiliza verde.
+Busca de oportunidades de voluntariado, área da organização e conta do voluntário.
+React 19 + Vite, JavaScript, React Router.
 
-## Executar localmente
+Publicado em https://system-extension.github.io/voluntare/ a cada push na `develop` que altere `frontend/`.
 
-Requisitos: Node.js 20.19+ ou 22.12+ e npm.
+## Rodar
+
+Requer Node.js 20.19+ ou 22.12+.
 
 ```sh
 cd frontend
@@ -12,22 +15,97 @@ npm install
 npm run dev
 ```
 
-Abra o endereço informado pelo servidor. Para gerar a versão de produção, execute `npm run build`. Para conferi-la localmente, execute `npm run preview`.
+## Backend
 
-## Incluído
+O frontend fala só com o backend Spring (não há mais modo demonstração). Antes do `npm run dev`, suba o banco e a API (ver o README da raiz): o Vite repassa `/api/...` para `http://localhost:8080`, então o navegador enxerga um endereço só e não precisa de CORS.
 
-- Página inicial, busca por atividade/organização e local.
-- Filtros por causa e formato, 15 oportunidades por página e painel de detalhes.
-- Navegação de páginas pela URL e suporte aos botões de voltar/avançar do navegador.
-- Vagas salvas no armazenamento local do navegador.
-- Interface responsiva e navegação por teclado.
-- Perfil de demonstração com edição em memória, preferências, vagas salvas, mensagens e notificações.
-- Área **ONGs/Anunciar vagas** com formulário validado, prévia, rascunhos, edição, encerramento e reabertura. Anúncios ativos aparecem na busca e podem ser salvos pelo voluntário.
+### Configuração (`.env`)
 
-Os anúncios da organização são guardados em `localStorage` sob a chave `voluntare-organization-jobs-v1`. Não são publicados na internet nem compartilhados entre dispositivos. A rota direta é `/?screen=organization`.
+Copie `.env.example` para `.env.local` (fica fora do Git) só se precisar mudar algo:
 
-Para conhecer as telas da área de conta, clique em **Acessar → Entrar na demonstração**. Perfil e preferências usam exemplos fictícios; ainda não há autenticação. A seleção de currículo não transmite nem armazena o arquivo.
+| Variável       | Padrão                  | Para quê                                                                                                                                            |
+| -------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `VITE_API_URL` | vazio                   | Endereço da API visto pelo navegador. Vazio = `/api` no mesmo endereço do site (proxy). Preenchido = chama direto e exige `CORS_ORIGENS` no backend |
+| `API_ALVO`     | `http://localhost:8080` | Só no `npm run dev`: para onde o proxy do Vite repassa `/api`. Não vai para o navegador                                                             |
+| `VITE_BASE`    | `/`                     | Pasta do site no servidor (`/voluntare/` no GitHub Pages)                                                                                           |
 
-As 30 oportunidades e organizações em `src/data.js` são fictícias. Login, publicação e envio de candidaturas ainda não estão integrados ao backend; a interface informa essa limitação e não coleta credenciais.
+Só `src/api/cliente.js` faz `fetch`; os outros arquivos de `src/api` informam apenas o caminho (`/api/auth/login`).
 
-Nenhuma publicação ou configuração de serviço externo é necessária para executar este frontend.
+Para entrar, use uma das contas da carga de demonstração (V8), todas com a senha `Voluntare@2026`:
+
+| Papel       | E-mail                            |
+| ----------- | --------------------------------- |
+| Voluntário  | `fernanda@example.com`            |
+| Gestor      | `ana@novoscaminhos.example.org`   |
+| Coordenador | `bruno@novoscaminhos.example.org` |
+
+## Sessão
+
+- `POST /api/auth/login` devolve `{ token, expiraEm, usuario }`; isso fica no `localStorage` (`voluntare-sessao`), vale em todas as abas e até o token vencer (8h).
+- Toda chamada de `src/api/cliente.js` manda `Authorization: Bearer <token>`. Se a API responder 401 com token, a sessão é apagada e a pessoa volta a ver "Acessar".
+- Ao abrir o site com sessão salva, `GET /api/auth/eu` confere se a conta ainda vale.
+- `RotaProtegida` esconde as telas de quem não pode vê-las: `/conta` só para voluntário, `/organizacao` só para gestor e coordenador. A segurança de verdade continua no backend.
+
+## Comandos
+
+| Comando          | Para quê                                   |
+| ---------------- | ------------------------------------------ |
+| `npm run dev`    | Servidor de desenvolvimento                |
+| `npm run lint`   | Confere o código (rodar antes de abrir PR) |
+| `npm run format` | Formata com Prettier                       |
+| `npm run build`  | Gera a versão de produção em `dist/`       |
+
+## Estrutura
+
+```
+src/
+├── api/                    ← ÚNICA camada que conhece o backend
+│   ├── cliente.js          fetch com token e erros no formato padrão da API
+│   ├── sessao.js           token e usuário logado no localStorage
+│   ├── auth.js             login e usuário logado (/api/auth)
+│   ├── rotulos.js          códigos do backend → textos da tela (EDUCACAO → "Educação")
+│   ├── oportunidades.js    busca, detalhe e área da organização
+│   └── organizacoes.js
+├── components/
+│   ├── layout/             cabeçalho, rodapé e layout das páginas
+│   ├── busca/              barra de busca (início e lista)
+│   ├── oportunidades/      cartão, detalhe, filtro de causa e paginação
+│   ├── modais/             conteúdo das janelas (informações, candidatura, confirmação)
+│   ├── rotas/              RotaProtegida (exige login e papel)
+│   └── ui/                 logo, modal, carregando, erro
+├── context/                provedores: sessão (login), vagas salvas e modal
+├── hooks/                  useCarregar, useModal, useConta, useVagasSalvas, useTitulo
+├── pages/                  uma pasta por área, cada uma com o seu CSS
+│   ├── inicio/
+│   ├── oportunidades/
+│   ├── organizacao/        lista, formulário e validação da oportunidade
+│   └── conta/              perfil, minhas vagas, mensagens, notificações
+├── styles/tema.css         cores, base e componentes comuns (botões, modal, abas)
+└── utils/                  datas, textos e rotas
+```
+
+Fluxo: `index.html → main.jsx → App.jsx (rotas) → página → componentes → src/api`.
+
+## Rotas
+
+| Rota                                           | Tela                                                     |
+| ---------------------------------------------- | -------------------------------------------------------- |
+| `/`                                            | Início                                                   |
+| `/entrar`                                      | Login (layout próprio, sem menus)                        |
+| `/oportunidades?q=&l=&causa=&pagina=`          | Busca: filtros na URL, lista e detalhe                   |
+| `/organizacao`                                 | Gestor/coordenador: vagas por status, encerrar, cancelar |
+| `/organizacao/nova`, `/organizacao/:id/editar` | Formulário da oportunidade                               |
+| `/conta/perfil`, `/conta/preferencias`         | Voluntário: perfil (ainda em memória)                    |
+| `/conta/minhas-vagas`                          | Vagas salvas                                             |
+| `/conta/mensagens`, `/conta/notificacoes`      | Prévias                                                  |
+
+## Alinhamento com o DER
+
+- **Oportunidade:** organização, causa, endereço, cidade, UF, início, fim, vagas e status `ABERTA`, `ENCERRADA` ou `CANCELADA`. Toda ação é presencial.
+- **Status:** encerrar e cancelar são definitivos; só oportunidades abertas podem ser editadas.
+- **Ainda não alinhado:** o perfil do voluntário e as telas do administrador serão refeitos depois.
+
+## Observações
+
+- Vagas salvas e anúncios criados ficam no `localStorage` deste navegador.
+- Os endereços em `src/api/*.js` são a proposta de contrato com o backend.

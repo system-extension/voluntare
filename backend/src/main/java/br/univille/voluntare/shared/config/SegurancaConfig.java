@@ -67,7 +67,8 @@ public class SegurancaConfig {
                         .requestMatchers(HttpMethod.GET, "/api/oportunidades", "/api/oportunidades/*", "/api/habilidades").permitAll()
                         // Entrar e se cadastrar
                         .requestMatchers(HttpMethod.POST,
-                                "/api/auth/login", "/api/auth/cadastro", "/api/auth/cadastro-organizacao").permitAll()
+                                "/api/auth/verificar-email", "/api/auth/login",
+                                "/api/auth/cadastro", "/api/auth/cadastro-organizacao").permitAll()
                         // Documentação e página de erro padrão
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/error").permitAll()
                         .anyRequest().authenticated())
