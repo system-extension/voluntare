@@ -88,24 +88,27 @@ Fluxo: `index.html → main.jsx → App.jsx (rotas) → página → componentes 
 
 ## Rotas
 
-| Rota                                           | Tela                                                     |
-| ---------------------------------------------- | -------------------------------------------------------- |
-| `/`                                            | Início                                                   |
-| `/entrar`                                      | Login (layout próprio, sem menus)                        |
-| `/oportunidades?q=&l=&causa=&pagina=`          | Busca: filtros na URL, lista e detalhe                   |
-| `/organizacao`                                 | Gestor/coordenador: vagas por status, encerrar, cancelar |
-| `/organizacao/nova`, `/organizacao/:id/editar` | Formulário da oportunidade                               |
-| `/conta/perfil`, `/conta/preferencias`         | Voluntário: perfil (ainda em memória)                    |
-| `/conta/minhas-vagas`                          | Vagas salvas                                             |
-| `/conta/mensagens`, `/conta/notificacoes`      | Prévias                                                  |
+| Rota                                           | Tela                                                                         |
+| ---------------------------------------------- | ---------------------------------------------------------------------------- |
+| `/`                                            | Início                                                                       |
+| `/entrar`                                      | Login e cadastro do voluntário (layout próprio, sem menus)                   |
+| `/cadastro-organizacao`                        | Cadastro da ONG com o primeiro gestor                                        |
+| `/oportunidades?q=&l=&causa=&pagina=`          | Busca: filtros na URL, lista e detalhe com candidatura                       |
+| `/organizacao`                                 | Gestor e coordenador: painel, vagas por status, publicar, encerrar, cancelar |
+| `/organizacao/nova`, `/organizacao/:id/editar` | Formulário da vaga: rascunho, publicação, habilidades e responsável          |
+| `/organizacao/:id/candidatos`                  | Aceitar e rejeitar candidaturas, registrar presença ou ausência              |
+| `/organizacao/equipe`                          | Só gestor: cadastrar e desativar coordenadores                               |
+| `/conta/perfil`                                | Voluntário: contato, disponibilidade, habilidades e interesses               |
+| `/conta/minhas-vagas`                          | Vagas salvas, candidaturas (com desistência) e histórico com as horas        |
+| `/conta/mensagens`, `/conta/notificacoes`      | Prévias (não há backend para elas)                                           |
 
 ## Alinhamento com o DER
 
-- **Oportunidade:** organização, causa, endereço, cidade, UF, início, fim, vagas e status `ABERTA`, `ENCERRADA` ou `CANCELADA`. Toda ação é presencial.
-- **Status:** encerrar e cancelar são definitivos; só oportunidades abertas podem ser editadas.
-- **Ainda não alinhado:** o perfil do voluntário e as telas do administrador serão refeitos depois.
+- **Oportunidade:** organização, responsável, causa, endereço, cidade, UF, início, fim, vagas, habilidades desejadas e status `RASCUNHO`, `ABERTA`, `ENCERRADA` ou `CANCELADA`. Toda ação é presencial.
+- **Status:** encerrar e cancelar são definitivos; só rascunhos e vagas abertas podem ser editados.
+- **Papéis:** o gestor cria vagas e cuida da equipe; o coordenador só vê e opera as vagas pelas quais responde.
 
 ## Observações
 
-- Vagas salvas e anúncios criados ficam no `localStorage` deste navegador.
-- Os endereços em `src/api/*.js` são a proposta de contrato com o backend.
+- Só as vagas salvas ficam no `localStorage` deste navegador; o resto vem da API.
+- Cada arquivo em `src/api/*.js` corresponde a um controller do backend.
