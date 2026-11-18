@@ -11,6 +11,10 @@ export const FORMULARIO_VAZIO = {
   horaInicio: '',
   horaFim: '',
   descricao: '',
+  atividades: '',
+  requisitos: '',
+  responsavelId: '',
+  habilidadeIds: [],
 };
 
 const hoje = () => {
@@ -40,5 +44,14 @@ export function validarOportunidade(form) {
     erros.horaFim = 'O término precisa ser depois do início.';
   if (form.descricao.trim().length < 40)
     erros.descricao = 'Descreva a oportunidade em pelo menos 40 caracteres.';
+  return erros;
+}
+
+/** Rascunho: só o título é obrigatório; o horário, se preenchido, ainda precisa fazer sentido. */
+export function validarRascunho(form) {
+  const erros = {};
+  if (!form.titulo.trim()) erros.titulo = 'Informe ao menos o título para salvar o rascunho.';
+  if (form.horaInicio && form.horaFim && form.horaFim <= form.horaInicio)
+    erros.horaFim = 'O término precisa ser depois do início.';
   return erros;
 }

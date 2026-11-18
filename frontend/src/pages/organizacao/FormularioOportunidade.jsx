@@ -1,32 +1,44 @@
 import { useRef, useState } from 'react';
 import { ArrowLeft, Check, MapPin, Search } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { buscarOportunidade, salvarOportunidade } from '../../api/oportunidades';
-import { buscarMinhaOrganizacao } from '../../api/organizacoes';
+import {
+  buscarParaGestao,
+  publicarOportunidade,
+  salvarOportunidade,
+} from '../../api/oportunidades';
+import { buscarMinhaOrganizacao, listarEquipe } from '../../api/organizacoes';
+import { listarHabilidades } from '../../api/voluntarios';
 import { CAUSAS, UFS, rotulo } from '../../api/rotulos';
 import Carregando from '../../components/ui/Carregando';
 import ErroCarregamento from '../../components/ui/ErroCarregamento';
 import useCarregar from '../../hooks/useCarregar';
+import useConta from '../../hooks/useConta';
 import useTitulo from '../../hooks/useTitulo';
 import { formatarPeriodo, juntarDataHora, separarDataHora } from '../../utils/datas';
-import { FORMULARIO_VAZIO, validarOportunidade } from './validacao';
+import { FORMULARIO_VAZIO, validarOportunidade, validarRascunho } from './validacao';
 import './organizacao.css';
 
 /** Converte a oportunidade da API nos campos do formulário (data e horários separados). */
 function paraFormulario(oportunidade) {
   const inicio = separarDataHora(oportunidade.inicio);
   const fim = separarDataHora(oportunidade.fim);
+  // rascunho pode vir com quase tudo vazio
   return {
+    ...FORMULARIO_VAZIO,
     titulo: oportunidade.titulo,
-    causa: oportunidade.causa,
-    vagas: String(oportunidade.vagas),
-    local: oportunidade.local,
-    cidade: oportunidade.cidade,
-    uf: oportunidade.uf,
+    causa: oportunidade.causa ?? FORMULARIO_VAZIO.causa,
+    vagas: oportunidade.vagas != null ? String(oportunidade.vagas) : FORMULARIO_VAZIO.vagas,
+    local: oportunidade.local ?? '',
+    cidade: oportunidade.cidade ?? '',
+    uf: oportunidade.uf ?? FORMULARIO_VAZIO.uf,
     data: inicio.data,
     horaInicio: inicio.hora,
     horaFim: fim.hora,
-    descricao: oportunidade.descricao,
+    descricao: oportunidade.descricao ?? '',
+    atividades: oportunidade.atividades ?? '',
+    requisitos: oportunidade.requisitos ?? '',
+    responsavelId: oportunidade.responsavel?.id ?? '',
+    habilidadeIds: (oportunidade.habilidades ?? []).map((h) => h.id),
   };
 }
 
@@ -34,19 +46,30 @@ function paraFormulario(oportunidade) {
 export default function FormularioOportunidade() {
   const { id } = useParams();
   useTitulo(id ? 'Editar vaga' : 'Anunciar uma vaga');
+  const { usuario } = useConta();
+  const gestor = usuario?.papel === 'GESTOR';
   const organizacao = useCarregar(buscarMinhaOrganizacao);
-  const existente = useCarregar(() => (id ? buscarOportunidade(id) : Promise.resolve(null)), [id]);
+  const catalogo = useCarregar(listarHabilidades);
+  // só o gestor escolhe o responsável (RN-17)
+  const equipe = useCarregar(() => (gestor ? listarEquipe() : Promise.resolve([])), [gestor]);
+  const existente = useCarregar(() => (id ? buscarParaGestao(id) : Promise.resolve(null)), [id]);
 
   if (existente.erro) return <ErroCarregamento erro={existente.erro} />;
   if (!organizacao.dados || existente.carregando) return <Carregando />;
-  if (existente.dados && existente.dados.status !== 'ABERTA')
-    return <ErroCarregamento erro={{ message: 'Só é possível editar oportunidades abertas.' }} />;
+  if (existente.dados && !['RASCUNHO', 'ABERTA'].includes(existente.dados.status))
+    return (
+      <ErroCarregamento erro={{ message: 'Só rascunhos e vagas abertas podem ser editados.' }} />
+    );
 
   return (
     <Editor
       key={id ?? 'nova'}
       id={id}
+      status={existente.dados?.status}
       organizacao={organizacao.dados}
+      catalogo={catalogo.dados ?? []}
+      equipe={(equipe.dados ?? []).filter((m) => m.ativo)}
+      gestor={gestor}
       inicial={existente.dados ? paraFormulario(existente.dados) : FORMULARIO_VAZIO}
     />
   );
@@ -69,7 +92,7 @@ function duracao(horaInicio, horaFim) {
   return `Duração: ${h ? `${h}h` : ''}${m ? String(m).padStart(h ? 2 : 1, '0') + (h ? '' : ' min') : ''}`;
 }
 
-function Editor({ id, organizacao, inicial }) {
+function Editor({ id, status, organizacao, catalogo, equipe, gestor, inicial }) {
   const navegar = useNavigate();
   const [form, setForm] = useState(inicial);
   const [erros, setErros] = useState({});
@@ -78,6 +101,7 @@ function Editor({ id, organizacao, inicial }) {
   const formRef = useRef(null);
 
   const voltar = () => navegar('/organizacao');
+  const aberta = status === 'ABERTA';
 
   function atualizar(e) {
     const { name, value } = e.target;
@@ -98,38 +122,71 @@ function Editor({ id, organizacao, inicial }) {
     requestAnimationFrame(() => formRef.current?.querySelector('[aria-invalid="true"]')?.focus());
   }
 
-  async function enviar(e) {
+  // rascunho: só o título é obrigatório (RN-20); publicar exige o anúncio completo
+  async function enviar(e, comoRascunho = false) {
     e.preventDefault();
-    const novosErros = validarOportunidade(form);
+    const novosErros = comoRascunho ? validarRascunho(form) : validarOportunidade(form);
     setErros(novosErros);
     if (Object.keys(novosErros).length) return focarPrimeiroErro();
 
+    const texto = (v) => v.trim() || null;
+    const periodo = form.data && form.horaInicio && form.horaFim;
+    const dados = {
+      id,
+      titulo: form.titulo.trim(),
+      causa: form.causa || null,
+      vagas: form.vagas ? Number(form.vagas) : null,
+      local: texto(form.local),
+      cidade: texto(form.cidade),
+      uf: form.uf || null,
+      inicio: periodo ? juntarDataHora(form.data, form.horaInicio) : null,
+      fim: periodo ? juntarDataHora(form.data, form.horaFim) : null,
+      descricao: texto(form.descricao),
+      atividades: texto(form.atividades),
+      requisitos: texto(form.requisitos),
+      // na edição a lista substitui a atual: sempre mandar, senão as habilidades somem
+      habilidadeIds: form.habilidadeIds,
+      responsavelId: gestor && form.responsavelId ? form.responsavelId : null,
+      rascunho: comoRascunho,
+    };
+
     setEnviando(true);
     try {
-      await salvarOportunidade({
-        id,
-        titulo: form.titulo.trim(),
-        causa: form.causa,
-        vagas: Number(form.vagas),
-        local: form.local.trim(),
-        cidade: form.cidade.trim(),
-        uf: form.uf,
-        inicio: juntarDataHora(form.data, form.horaInicio),
-        fim: juntarDataHora(form.data, form.horaFim),
-        descricao: form.descricao.trim(),
-      });
+      const salva = await salvarOportunidade(dados);
+      if (status === 'RASCUNHO' && !comoRascunho) await publicarOportunidade(salva.id);
       navegar('/organizacao', {
-        state: { aviso: id ? 'Vaga atualizada na busca.' : 'Vaga publicada na busca.' },
+        state: {
+          aviso: comoRascunho
+            ? 'Rascunho salvo. Ele não aparece na busca até ser publicado.'
+            : aberta
+              ? 'Vaga atualizada na busca.'
+              : 'Vaga publicada na busca.',
+        },
       });
     } catch (erro) {
       setErroEnvio(erro.message);
-      const doServidor = Object.fromEntries((erro.campos ?? []).map((c) => [c.campo, c.mensagem]));
+      const nomes = { inicio: 'horaInicio', fim: 'horaFim' };
+      const doServidor = Object.fromEntries(
+        (erro.campos ?? []).map((c) => [nomes[c.campo] ?? c.campo, c.mensagem]),
+      );
       setErros(doServidor);
       focarPrimeiroErro();
     } finally {
       setEnviando(false);
     }
   }
+
+  const alternarHabilidade = (habilidadeId) =>
+    setForm((atual) => {
+      const tem = atual.habilidadeIds.includes(habilidadeId);
+      if (!tem && atual.habilidadeIds.length >= 10) return atual;
+      return {
+        ...atual,
+        habilidadeIds: tem
+          ? atual.habilidadeIds.filter((h) => h !== habilidadeId)
+          : [...atual.habilidadeIds, habilidadeId],
+      };
+    });
 
   function campo(
     name,
@@ -201,7 +258,13 @@ function Editor({ id, organizacao, inicial }) {
       </button>
       <div className="ong-editor-heading">
         <div className="ong-eyebrow">Anunciar uma oportunidade</div>
-        <h1>{id ? 'Editar vaga' : 'Encontre quem quer fazer a diferença.'}</h1>
+        <h1>
+          {aberta
+            ? 'Editar vaga'
+            : id
+              ? 'Continuar rascunho'
+              : 'Encontre quem quer fazer a diferença.'}
+        </h1>
         <p>Apresente sua causa e conte como os voluntários podem ajudar.</p>
       </div>
       <form ref={formRef} onSubmit={enviar} noValidate className="ong-form-layout">
@@ -266,6 +329,59 @@ function Editor({ id, organizacao, inicial }) {
               placeholder:
                 'Apresente o projeto, as atividades e o que espera dos voluntários. Mínimo de 40 caracteres.',
             })}
+            {campo('atividades', 'O que os voluntários vão fazer (opcional)', {
+              type: 'textarea',
+              maxLength: 2000,
+            })}
+            {campo('requisitos', 'Requisitos (opcional)', {
+              type: 'textarea',
+              maxLength: 2000,
+              placeholder: 'Ex.: pontualidade, gostar de crianças',
+            })}
+          </section>
+
+          <section className="ong-form-section">
+            <h2>
+              <span>5</span> Habilidades desejadas e responsável
+            </h2>
+            <fieldset className="ong-habilidades">
+              <legend>Habilidades desejadas (até 10, opcional)</legend>
+              <p className="ong-form-footnote">
+                Ajudam o voluntário a se encontrar na vaga, mas não impedem ninguém de se
+                candidatar.
+              </p>
+              <div>
+                {catalogo.map((h) => (
+                  <button
+                    type="button"
+                    key={h.id}
+                    aria-pressed={form.habilidadeIds.includes(h.id)}
+                    onClick={() => alternarHabilidade(h.id)}
+                  >
+                    {h.nome}
+                  </button>
+                ))}
+              </div>
+              {erros.habilidadeIds && (
+                <span className="ong-field-error">{erros.habilidadeIds}</span>
+              )}
+            </fieldset>
+            {gestor ? (
+              campo('responsavelId', 'Responsável pela vaga', {
+                options: [
+                  { valor: '', rotulo: id ? 'Manter o atual' : 'Eu mesmo' },
+                  ...equipe.map((m) => ({
+                    valor: m.id,
+                    rotulo: `${m.nome} (${m.papel === 'GESTOR' ? 'gestor' : 'coordenador'})`,
+                  })),
+                ],
+                dica: 'Quem aceita os candidatos e registra a presença. O gestor pode agir em qualquer vaga.',
+              })
+            ) : (
+              <p className="ong-form-footnote">
+                O responsável pela vaga é definido pelo gestor da organização.
+              </p>
+            )}
           </section>
 
           {(erroEnvio || Object.values(erros).some(Boolean)) && (
@@ -277,12 +393,22 @@ function Editor({ id, organizacao, inicial }) {
             <button type="button" className="text-button" onClick={voltar}>
               Cancelar
             </button>
+            {!aberta && (
+              <button
+                type="button"
+                className="ong-outline-button"
+                disabled={enviando}
+                onClick={(e) => enviar(e, true)}
+              >
+                Salvar rascunho
+              </button>
+            )}
             <button type="submit" className="primary-button" disabled={enviando}>
-              {id ? 'Salvar e atualizar vaga' : 'Publicar vaga'}
+              {aberta ? 'Salvar e atualizar vaga' : 'Publicar vaga'}
             </button>
           </div>
           <p className="ong-form-footnote">
-            Ao publicar, a vaga aparecerá somente na busca local deste navegador.
+            Ao publicar, a vaga aparece na busca e passa a receber candidaturas.
           </p>
         </div>
 

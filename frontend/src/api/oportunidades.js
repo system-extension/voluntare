@@ -26,6 +26,21 @@ export async function buscarVarias(ids) {
   return respostas.filter((r) => r.status === 'fulfilled').map((r) => r.value);
 }
 
+/** Área da organização: detalhe em qualquer status, inclusive rascunho (para editar). */
+export async function buscarParaGestao(id) {
+  return requisicao(`/api/organizacao/oportunidades/${id}`);
+}
+
+/** Linha do tempo dos status: quem criou e quem mudou o quê. */
+export async function listarHistorico(id) {
+  return requisicao(`/api/organizacao/oportunidades/${id}/historico`);
+}
+
+/** Rascunho → aberta. O backend exige o anúncio completo. */
+export async function publicarOportunidade(id) {
+  return requisicao(`/api/oportunidades/${id}/publicar`, { metodo: 'POST' });
+}
+
 /** Área da organização: as oportunidades dela, em qualquer status. */
 export async function listarDaMinhaOrganizacao() {
   return requisicao('/api/organizacao/oportunidades');
@@ -42,6 +57,10 @@ export async function encerrarOportunidade(id) {
   return requisicao(`/api/oportunidades/${id}/encerrar`, { metodo: 'POST' });
 }
 
-export async function cancelarOportunidade(id) {
-  return requisicao(`/api/oportunidades/${id}/cancelar`, { metodo: 'POST' });
+/** O motivo é opcional e vai para o histórico. */
+export async function cancelarOportunidade(id, motivo) {
+  return requisicao(`/api/oportunidades/${id}/cancelar`, {
+    metodo: 'POST',
+    corpo: { motivo: motivo || null },
+  });
 }
