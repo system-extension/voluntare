@@ -24,9 +24,9 @@ function sql(comando) {
 
 async function entrar(page, email) {
   await page.goto('/entrar');
-  await page.getByLabel('Endereço de e-mail').fill(email);
+  await page.locator('#acesso-email').fill(email);
   await page.getByRole('button', { name: 'Continuar', exact: true }).click();
-  await page.getByLabel('Senha', { exact: true }).fill(SENHA);
+  await page.locator('#acesso-senha').fill(SENHA);
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await expect(page).not.toHaveURL(/\/entrar/);
 }
