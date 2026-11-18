@@ -33,8 +33,8 @@ Toda regra nova ou alterada entra aqui antes (ou junto) do código. Se a regra v
 | RN-11 | Senha de 8 a 72 caracteres, guardada só como hash (BCrypt) | RNF | service | ✅ |
 | RN-12 | Login errado tem sempre a mesma resposta, exista o e-mail ou não | — | service | ✅ |
 | RN-13 | A sessão vale 8 horas; depois, a pessoa entra de novo | D-19 | service | ✅ |
-| RN-14 | O gestor cadastra e desativa coordenadores da sua organização. A senha inicial do coordenador é definida pelo gestor. Gestor não é desativado pelo sistema | Q-06, D-25 | service | ✅ |
-| RN-15 | Ao desativar alguém, o gestor indica quem assume as vagas em rascunho ou abertas dessa pessoa; a troca e a desativação acontecem juntas | D-25 | service | ✅ |
+| RN-14 | O gestor cadastra e desativa coordenadores da sua organização. A senha inicial do coordenador é definida pelo gestor. Gestor não é desativado pelo sistema | Q-06, D-26 | service | ✅ |
+| RN-15 | Ao desativar alguém, o gestor indica quem assume as vagas em rascunho ou abertas dessa pessoa; a troca e a desativação acontecem juntas | D-26 | service | ✅ |
 
 ## 3. Oportunidade
 
