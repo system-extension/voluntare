@@ -4,8 +4,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
-# endereço da API visto pelo navegador, não pelo contêiner
-ARG VITE_API_URL=http://localhost:8080
+# vazio: o front chama /api no próprio endereço e o nginx repassa para o backend
+ARG VITE_API_URL=
 ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 

@@ -43,8 +43,10 @@ jobs:
           curl -sf -X POST http://localhost:8080/api/auth/login -H 'Content-Type: application/json' \
             -d '{"email": "ana@novoscaminhos.example.org", "senha": "Voluntare@2026"}' | jq -e '.token'
 
-      - name: Front responde
-        run: curl -sf http://localhost:5173/ | grep -q '<div id="root">'
+      - name: Front responde e repassa /api para o backend
+        run: |
+          curl -sf http://localhost:5173/ | grep -q '<div id="root">'
+          curl -sf http://localhost:5173/api/oportunidades | jq -e '.itens | length > 0'
 
       - if: failure()
         run: docker compose --profile app logs
