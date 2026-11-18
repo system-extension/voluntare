@@ -162,3 +162,7 @@ cd frontend
 npm ci
 npm run dev
 ```
+
+### Teste de ponta a ponta
+
+Com o projeto no ar pelo Docker (`docker compose --profile app up -d --build`), o fluxo de demonstração roda no navegador com `npm run e2e` dentro de `frontend` (na primeira vez, `npx playwright install chromium`). Detalhes em [docs/testes.md](docs/testes.md#ponta-a-ponta-navegador).

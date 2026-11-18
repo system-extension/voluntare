@@ -12,6 +12,8 @@ Três camadas, cada uma no lugar em que faz sentido:
 | **Service com Mockito** | JUnit 5 + Mockito | Decisões do service que dependem de datas e números, não do banco: limite de horas pela duração, presença antes do fim, leitura do prazo | O repositório, o acesso e o histórico são simulados; o teste confere a decisão e o que o service mandou gravar |
 | **Integração** | `@SpringBootTest` + MockMvc + Testcontainers (PostgreSQL 16) | Fluxos completos pela API: segurança, validação, regras, banco e histórico | As regras críticas dependem do banco (`SELECT ... FOR UPDATE`, índices únicos, CHECK, `unaccent`); só um PostgreSQL de verdade prova que funcionam |
 
+Além das três camadas do backend, o fluxo de demonstração roda de ponta a ponta no navegador (ver abaixo).
+
 O Mockito não é usado onde a regra depende do banco: um repositório simulado diria que o service chamou o método certo, mas não provaria, por exemplo, que dois aceites simultâneos não passam do limite.
 
 ## Cobertura
@@ -71,6 +73,31 @@ O `mvnw verify` gera o relatório do JaCoCo em `backend/target/site/jacoco/index
 | `participacao/service/ParticipacaoServiceTest` | Mockito | Limite de horas pela duração, vaga cancelada, presença antes do fim |
 | `parametro/service/ParametroServiceTest` | Mockito | Prazo de devolução lido da tabela `parametro` |
 
+## Ponta a ponta (navegador)
+
+`frontend/e2e/fluxo.spec.js`, com Playwright, contra o sistema inteiro no Docker (banco, backend e front). Roda no CI a cada PR (`.github/workflows/e2e.yml`) e na máquina com:
+
+```
+docker compose --profile app up -d --build   # na raiz
+cd frontend
+npx playwright install chromium               # só na primeira vez
+npm run e2e
+```
+
+| Passo | Quem | O que confere |
+|---|---|---|
+| 1 | Ana (gestora) | Publica uma vaga com habilidade desejada e o Bruno como responsável |
+| 2 | Fernanda (voluntária) | Acha a vaga na busca, vê habilidades e responsável e se candidata |
+| 3 | Bruno (coordenador) | Aceita a candidatura na tela de candidatos |
+| 4 | Bruno | Depois do fim da atividade, registra a presença com 2,5 h (o teste antecipa a data da vaga direto no banco) |
+| 5 | Fernanda | Vê a participação e as horas no histórico |
+| 6 | Fernanda | Edita a disponibilidade no perfil |
+| 7 | Ana | Cadastra e desativa um coordenador na tela de equipe |
+
+## Portabilidade
+
+O workflow `.github/workflows/portabilidade.yml` sobe o projeto pelo Docker no Linux (API, login e front) e compila o backend com o `mvnw.cmd` e o front com o `npm` no Windows.
+
 ## Ainda sem teste automatizado
 
-- Telas do frontend (a integração com a API começa na Sprint 03).
+- Telas de mensagens e notificações (são prévias, sem backend).
