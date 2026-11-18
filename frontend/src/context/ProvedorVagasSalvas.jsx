@@ -6,7 +6,7 @@ const CHAVE = 'voluntare-saved';
 function ler() {
   try {
     const valor = JSON.parse(localStorage.getItem(CHAVE) || '[]');
-    return Array.isArray(valor) ? valor.filter(Number.isInteger) : [];
+    return Array.isArray(valor) ? valor.filter((id) => typeof id === 'string') : [];
   } catch {
     return [];
   }

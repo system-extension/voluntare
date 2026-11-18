@@ -9,31 +9,9 @@ import {
 } from '../api/sessao';
 import { ContextoConta } from './contextos';
 
-// Temporário: a tela de perfil ainda usa estes dados em memória.
-// Saem quando o perfil for ligado a GET/PUT /api/voluntarios/eu.
-const PERFIL_INICIAL = {
-  name: 'Pessoa Voluntária',
-  city: 'Sua cidade, Brasil',
-  email: 'voluntario@example.com',
-  about: '',
-};
-const PREFERENCIAS_INICIAIS = {
-  visible: true,
-  ready: false,
-  values: {
-    Causas: 'Educação',
-    'Horário disponível': 'Fins de semana',
-    'Formato da vaga': 'Remoto',
-    'Tempo de dedicação': '2 horas por semana',
-    Deslocamento: 'Até 10 km',
-  },
-};
-
 /** Sessão real (token JWT do backend) disponível para todas as telas via useConta(). */
 export default function ProvedorConta({ children }) {
   const [sessao, setSessao] = useState(lerSessao);
-  const [perfil, setPerfil] = useState(PERFIL_INICIAL);
-  const [preferencias, setPreferencias] = useState(PREFERENCIAS_INICIAIS);
 
   // Login e cadastro devolvem a mesma resposta ({ token, expiraEm, usuario }).
   const iniciar = useCallback((nova) => {
@@ -117,12 +95,8 @@ export default function ProvedorConta({ children }) {
       cadastrar,
       cadastrarOng,
       sair,
-      perfil,
-      setPerfil,
-      preferencias,
-      setPreferencias,
     }),
-    [sessao, entrar, cadastrar, cadastrarOng, sair, perfil, preferencias],
+    [sessao, entrar, cadastrar, cadastrarOng, sair],
   );
 
   return <ContextoConta.Provider value={valor}>{children}</ContextoConta.Provider>;

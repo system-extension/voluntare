@@ -179,7 +179,6 @@ function FerramentasConta({ usuario, pathname, irPara, aoSair }) {
               ) : (
                 <>
                   <button onClick={() => abrirTela('/conta/perfil')}>Perfil</button>
-                  <button onClick={() => abrirTela('/conta/preferencias')}>Preferências</button>
                   <button onClick={() => abrirTela('/conta/minhas-vagas')}>Minhas vagas</button>
                 </>
               )}

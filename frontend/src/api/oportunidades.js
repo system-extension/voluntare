@@ -18,12 +18,12 @@ export async function buscarOportunidade(id) {
 }
 
 /**
- * Várias de uma vez (vagas salvas). O backend ainda não aceita o filtro "ids":
- * vai ser revisto na etapa da candidatura, que substitui as vagas salvas.
+ * Várias pelo id (vagas salvas). Uma chamada por vaga; as que não existem mais
+ * (ou viraram rascunho) ficam de fora em vez de derrubar a lista.
  */
 export async function buscarVarias(ids) {
-  if (!ids.length) return [];
-  return requisicao('/api/oportunidades' + query({ ids: ids.join(',') }));
+  const respostas = await Promise.allSettled(ids.map((id) => buscarOportunidade(id)));
+  return respostas.filter((r) => r.status === 'fulfilled').map((r) => r.value);
 }
 
 /** Área da organização: as oportunidades dela, em qualquer status. */

@@ -51,11 +51,8 @@ export default function App() {
                 <Route element={<RotaProtegida papeis={['VOLUNTARIO']} />}>
                   <Route path="conta" element={<LayoutConta />}>
                     <Route index element={<Navigate to="perfil" replace />} />
-                    <Route path="perfil" element={<Perfil key="perfil" abaInicial="resume" />} />
-                    <Route
-                      path="preferencias"
-                      element={<Perfil key="preferencias" abaInicial="preferences" />}
-                    />
+                    <Route path="perfil" element={<Perfil />} />
+                    <Route path="preferencias" element={<Navigate to="/conta/perfil" replace />} />
                     <Route path="minhas-vagas" element={<MinhasVagas />} />
                     <Route path="mensagens" element={<Mensagens />} />
                     <Route path="notificacoes" element={<Notificacoes />} />
