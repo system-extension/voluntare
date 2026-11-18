@@ -8,6 +8,8 @@ import Inicio from './pages/inicio/Inicio';
 import Oportunidades from './pages/oportunidades/Oportunidades';
 import AreaOrganizacao from './pages/organizacao/AreaOrganizacao';
 import FormularioOportunidade from './pages/organizacao/FormularioOportunidade';
+import Candidatos from './pages/organizacao/Candidatos';
+import Equipe from './pages/organizacao/Equipe';
 import LayoutConta from './pages/conta/LayoutConta';
 import Perfil from './pages/conta/Perfil';
 import MinhasVagas from './pages/conta/MinhasVagas';
@@ -44,8 +46,13 @@ export default function App() {
 
                 <Route element={<RotaProtegida papeis={PAPEIS_ORGANIZACAO} />}>
                   <Route path="organizacao" element={<AreaOrganizacao />} />
-                  <Route path="organizacao/nova" element={<FormularioOportunidade />} />
                   <Route path="organizacao/:id/editar" element={<FormularioOportunidade />} />
+                  <Route path="organizacao/:id/candidatos" element={<Candidatos />} />
+                </Route>
+
+                <Route element={<RotaProtegida papeis={['GESTOR']} />}>
+                  <Route path="organizacao/nova" element={<FormularioOportunidade />} />
+                  <Route path="organizacao/equipe" element={<Equipe />} />
                 </Route>
 
                 <Route element={<RotaProtegida papeis={['VOLUNTARIO']} />}>

@@ -319,3 +319,20 @@ a:hover {
   font-size: 14px;
   color: var(--muted);
 }
+
+.modal-motivo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.modal-motivo textarea {
+  border: 1px solid #999;
+  border-radius: 6px;
+  padding: 10px;
+  font: inherit;
+  font-weight: 400;
+  resize: vertical;
+}

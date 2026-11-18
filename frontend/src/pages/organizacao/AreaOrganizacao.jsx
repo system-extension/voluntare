@@ -4,13 +4,17 @@ import {
   Building2,
   CalendarDays,
   CheckCircle2,
-  FileText,
+  Clock3,
+  FilePen,
   HeartHandshake,
+  Inbox,
   MapPin,
   Pencil,
   Plus,
   Search,
+  UserRound,
   Users,
+  UsersRound,
   XCircle,
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -18,12 +22,14 @@ import {
   cancelarOportunidade,
   encerrarOportunidade,
   listarDaMinhaOrganizacao,
+  publicarOportunidade,
 } from '../../api/oportunidades';
-import { buscarMinhaOrganizacao } from '../../api/organizacoes';
+import { buscarMinhaOrganizacao, buscarPainel } from '../../api/organizacoes';
 import { STATUS_OPORTUNIDADE, rotulo } from '../../api/rotulos';
 import Carregando from '../../components/ui/Carregando';
 import ErroCarregamento from '../../components/ui/ErroCarregamento';
 import useCarregar from '../../hooks/useCarregar';
+import useConta from '../../hooks/useConta';
 import useModal from '../../hooks/useModal';
 import useTitulo from '../../hooks/useTitulo';
 import { formatarPeriodo } from '../../utils/datas';
@@ -31,15 +37,27 @@ import { caminhoBusca } from '../../utils/rotas';
 import { normalizar } from '../../utils/texto';
 import './organizacao.css';
 
-const ICONES = { ABERTA: HeartHandshake, ENCERRADA: CheckCircle2, CANCELADA: XCircle };
 const classeStatus = (status) => STATUS_OPORTUNIDADE.find((s) => s.valor === status)?.classe;
+const preenchida = (o) => o.status === 'ABERTA' && o.vagasDisponiveis === 0;
 
-/** Área da organização: oportunidades publicadas e ações sobre elas. */
+// filtros dos cartões do painel; "abertas" e "preenchidas" não se repetem (D-26)
+const FILTROS = {
+  TODAS: () => true,
+  RASCUNHO: (o) => o.status === 'RASCUNHO',
+  ABERTA: (o) => o.status === 'ABERTA' && !preenchida(o),
+  PREENCHIDA: preenchida,
+  ENCERRADA: (o) => o.status === 'ENCERRADA',
+  CANCELADA: (o) => o.status === 'CANCELADA',
+};
+
+/** Área da organização: painel com os números, lista das vagas e ações sobre cada uma. */
 export default function AreaOrganizacao() {
-  useTitulo('ONGs / Anunciar vagas');
+  useTitulo('Área da organização');
   const navegar = useNavigate();
   const { state } = useLocation();
   const { abrir } = useModal();
+  const { usuario } = useConta();
+  const gestor = usuario?.papel === 'GESTOR';
   const tituloRef = useRef(null);
 
   const [filtro, setFiltro] = useState('TODAS');
@@ -48,41 +66,81 @@ export default function AreaOrganizacao() {
   const [erroAcao, setErroAcao] = useState('');
 
   const organizacao = useCarregar(buscarMinhaOrganizacao);
+  const painel = useCarregar(buscarPainel);
   const { dados: oportunidades, erro, recarregar } = useCarregar(listarDaMinhaOrganizacao);
 
   if (erro) return <ErroCarregamento erro={erro} aoTentarNovamente={recarregar} />;
   if (!oportunidades) return <Carregando />;
 
   const filtradas = oportunidades.filter(
-    (o) =>
-      (filtro === 'TODAS' || o.status === filtro) &&
-      normalizar(o.titulo).includes(normalizar(busca)),
+    (o) => FILTROS[filtro](o) && normalizar(o.titulo).includes(normalizar(busca)),
   );
 
-  function confirmar(oportunidade, acao) {
-    const encerrar = acao === 'encerrar';
-    abrir('confirmar', {
-      titulo: encerrar ? 'Encerrar vaga' : 'Cancelar vaga',
-      mensagem: encerrar
-        ? `“${oportunidade.titulo}” sai da busca e não recebe novas candidaturas. Não é possível reabrir uma vaga encerrada.`
-        : `“${oportunidade.titulo}” sai da busca e os voluntários confirmados continuam no histórico. Não é possível desfazer o cancelamento.`,
-      textoConfirmar: encerrar ? 'Encerrar vaga' : 'Cancelar vaga',
-      aoConfirmar: async () => {
-        try {
-          await (encerrar ? encerrarOportunidade : cancelarOportunidade)(oportunidade.id);
-          setErroAcao('');
-          setAviso(
-            encerrar
-              ? 'Vaga encerrada e retirada da busca.'
-              : 'Vaga cancelada e retirada da busca.',
-          );
-          tituloRef.current?.focus();
-        } catch (e) {
-          setErroAcao(e.message);
-        }
+  const depoisDaAcao = (mensagem) => {
+    setErroAcao('');
+    setAviso(mensagem);
+    recarregar();
+    painel.recarregar();
+    tituloRef.current?.focus();
+  };
+
+  async function executar(acao, mensagem) {
+    try {
+      await acao();
+      depoisDaAcao(mensagem);
+    } catch (e) {
+      setErroAcao(e.message);
+    }
+  }
+
+  function confirmar(oportunidade, tipo) {
+    const rascunho = oportunidade.status === 'RASCUNHO';
+    const textos = {
+      encerrar: {
+        titulo: 'Encerrar vaga',
+        mensagem: `“${oportunidade.titulo}” sai da busca e não recebe novas candidaturas. Depois do fim da atividade, registre a presença dos confirmados. Não é possível reabrir uma vaga encerrada.`,
+        ok: 'Vaga encerrada e retirada da busca.',
       },
+      cancelar: rascunho
+        ? {
+            titulo: 'Descartar rascunho',
+            mensagem: `O rascunho “${oportunidade.titulo}” será descartado.`,
+            ok: 'Rascunho descartado.',
+          }
+        : {
+            titulo: 'Cancelar vaga',
+            mensagem: `“${oportunidade.titulo}” sai da busca. Candidaturas e participações continuam no histórico. Não é possível desfazer o cancelamento.`,
+            ok: 'Vaga cancelada e retirada da busca.',
+          },
+    }[tipo];
+    abrir('confirmar', {
+      titulo: textos.titulo,
+      mensagem: textos.mensagem,
+      textoConfirmar: textos.titulo,
+      pedirMotivo: tipo === 'cancelar' && !rascunho ? 'Motivo (opcional, fica no histórico)' : null,
+      aoConfirmar: (motivo) =>
+        executar(
+          () =>
+            tipo === 'encerrar'
+              ? encerrarOportunidade(oportunidade.id)
+              : cancelarOportunidade(oportunidade.id, motivo),
+          textos.ok,
+        ),
     });
   }
+
+  const p = painel.dados;
+  const cartoes = [
+    { filtro: 'RASCUNHO', rotulo: 'Rascunhos', Icone: FilePen, valor: p?.vagas.rascunhos },
+    { filtro: 'ABERTA', rotulo: 'Vagas abertas', Icone: HeartHandshake, valor: p?.vagas.abertas },
+    {
+      filtro: 'PREENCHIDA',
+      rotulo: 'Vagas preenchidas',
+      Icone: Users,
+      valor: p?.vagas.preenchidas,
+    },
+    { filtro: 'ENCERRADA', rotulo: 'Encerradas', Icone: CheckCircle2, valor: p?.vagas.encerradas },
+  ];
 
   return (
     <section className="ong-page">
@@ -96,18 +154,24 @@ export default function AreaOrganizacao() {
             Suas oportunidades,
             <br className="ong-title-break" /> novos voluntários.
           </h1>
-          <p>Crie e acompanhe as vagas da sua ONG ou projeto social.</p>
+          <p>
+            {gestor
+              ? 'Crie e acompanhe as vagas da sua organização.'
+              : 'Acompanhe as vagas pelas quais você é responsável.'}
+          </p>
         </div>
-        <button className="primary-button" onClick={() => navegar('/organizacao/nova')}>
-          <Plus size={20} /> Anunciar uma vaga
-        </button>
-      </div>
-      <div className="ong-local-note">
-        <FileText size={18} />
-        <span>
-          Os anúncios ficam salvos apenas neste navegador. A divulgação pública estará disponível
-          com a integração ao servidor.
-        </span>
+        <div className="ong-heading-actions">
+          {gestor && (
+            <button className="ong-outline-button" onClick={() => navegar('/organizacao/equipe')}>
+              <UsersRound size={18} /> Equipe
+            </button>
+          )}
+          {gestor && (
+            <button className="primary-button" onClick={() => navegar('/organizacao/nova')}>
+              <Plus size={20} /> Anunciar uma vaga
+            </button>
+          )}
+        </div>
       </div>
       {erroAcao && (
         <p className="ong-error-banner" role="alert">
@@ -122,30 +186,47 @@ export default function AreaOrganizacao() {
       )}
 
       <div className="ong-stats">
-        {STATUS_OPORTUNIDADE.map(({ valor, plural }) => {
-          const Icone = ICONES[valor];
-          return (
-            <button
-              key={valor}
-              onClick={() => setFiltro(filtro === valor ? 'TODAS' : valor)}
-              aria-pressed={filtro === valor}
-              className={filtro === valor ? 'selected' : ''}
-            >
-              <span>
-                <Icone size={20} />
-                {`Vagas ${plural.toLowerCase()}`}
-              </span>
-              <strong>{oportunidades.filter((o) => o.status === valor).length}</strong>
-            </button>
-          );
-        })}
+        {cartoes.map(({ filtro: valor, rotulo: texto, Icone, valor: numero }) => (
+          <button
+            key={valor}
+            onClick={() => setFiltro(filtro === valor ? 'TODAS' : valor)}
+            aria-pressed={filtro === valor}
+            className={filtro === valor ? 'selected' : ''}
+          >
+            <span>
+              <Icone size={20} />
+              {texto}
+            </span>
+            <strong>{numero ?? '–'}</strong>
+          </button>
+        ))}
       </div>
+      {p && (
+        <div className="ong-indicadores" aria-label="Indicadores">
+          <span>
+            <Inbox size={17} /> <strong>{p.candidaturasPendentes}</strong> candidaturas esperando
+            resposta
+          </span>
+          <span>
+            <Users size={17} /> <strong>{p.participacoes.confirmadas}</strong> voluntários
+            confirmados
+          </span>
+          <span>
+            <Clock3 size={17} />{' '}
+            <strong>
+              {Number(p.horasRealizadas).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} h
+            </strong>{' '}
+            de voluntariado em {p.participacoes.presentes} presenças
+          </span>
+          {p.escopo === 'MINHAS_VAGAS' && <em>Números das vagas pelas quais você responde</em>}
+        </div>
+      )}
 
       <div className="ong-list-header">
-        <h2>Minhas vagas</h2>
+        <h2>Vagas</h2>
         <label className="ong-search">
           <Search size={18} />
-          <span className="sr-only">Buscar minhas vagas</span>
+          <span className="sr-only">Buscar vagas</span>
           <input
             placeholder="Buscar por título"
             value={busca}
@@ -153,7 +234,7 @@ export default function AreaOrganizacao() {
           />
         </label>
       </div>
-      <div className="ong-tabs" aria-label="Status dos anúncios">
+      <div className="ong-tabs" aria-label="Status das vagas">
         {[{ valor: 'TODAS', plural: 'Todas' }, ...STATUS_OPORTUNIDADE].map(({ valor, plural }) => (
           <button
             key={valor}
@@ -179,7 +260,9 @@ export default function AreaOrganizacao() {
           <p>
             {oportunidades.length
               ? 'Busque por outro título ou escolha um status diferente.'
-              : 'Conte o que sua organização faz e encontre pessoas que querem contribuir com a sua causa.'}
+              : gestor
+                ? 'Conte o que sua organização faz e encontre pessoas que querem contribuir com a sua causa.'
+                : 'Quando o gestor deixar uma vaga com você, ela aparece aqui.'}
           </p>
           {oportunidades.length ? (
             <button
@@ -192,69 +275,97 @@ export default function AreaOrganizacao() {
               Mostrar todas as vagas
             </button>
           ) : (
-            <button className="primary-button" onClick={() => navegar('/organizacao/nova')}>
-              Criar minha primeira vaga <ArrowRight size={18} />
-            </button>
+            gestor && (
+              <button className="primary-button" onClick={() => navegar('/organizacao/nova')}>
+                Criar minha primeira vaga <ArrowRight size={18} />
+              </button>
+            )
           )}
         </div>
       ) : (
         <div className="ong-job-list">
-          {filtradas.map((oportunidade) => (
-            <article className="ong-job-row" key={oportunidade.id}>
+          {filtradas.map((o) => (
+            <article className="ong-job-row" key={o.id}>
               <div className="ong-job-summary">
-                <span className={`ong-status ${classeStatus(oportunidade.status)}`}>
-                  {rotulo(STATUS_OPORTUNIDADE, oportunidade.status)}
+                <span className={`ong-status ${classeStatus(o.status)}`}>
+                  {preenchida(o) ? 'Preenchida' : rotulo(STATUS_OPORTUNIDADE, o.status)}
                 </span>
-                <h3>{oportunidade.titulo}</h3>
-                <p>{oportunidade.organizacao.nome}</p>
+                <h3>{o.titulo}</h3>
+                <p className="inline-icon">
+                  <UserRound size={15} /> Responsável: {o.responsavel?.nome}
+                </p>
                 <div className="ong-job-meta">
-                  <span>
-                    <MapPin size={15} />
-                    {oportunidade.cidade}, {oportunidade.uf}
-                  </span>
-                  <span>
-                    <CalendarDays size={15} />
-                    {formatarPeriodo(oportunidade.inicio, oportunidade.fim)}
-                  </span>
-                  <span>
-                    <Users size={15} />
-                    {oportunidade.vagas} vaga(s)
-                  </span>
+                  {o.cidade && (
+                    <span>
+                      <MapPin size={15} />
+                      {o.cidade}, {o.uf}
+                    </span>
+                  )}
+                  {o.inicio && o.fim && (
+                    <span>
+                      <CalendarDays size={15} />
+                      {formatarPeriodo(o.inicio, o.fim)}
+                    </span>
+                  )}
+                  {o.vagas != null && (
+                    <span>
+                      <Users size={15} />
+                      {o.vagas - o.vagasDisponiveis} de {o.vagas} vaga(s) ocupada(s)
+                    </span>
+                  )}
                 </div>
               </div>
-              {oportunidade.status === 'ABERTA' && (
-                <div className="ong-job-actions">
+              <div className="ong-job-actions">
+                {(o.status === 'RASCUNHO' || o.status === 'ABERTA') && (
                   <button
                     className="ong-outline-button"
-                    onClick={() => navegar(`/organizacao/${oportunidade.id}/editar`)}
+                    onClick={() => navegar(`/organizacao/${o.id}/editar`)}
                   >
                     <Pencil size={16} />
-                    Editar
+                    {o.status === 'RASCUNHO' ? 'Continuar rascunho' : 'Editar'}
                   </button>
+                )}
+                {o.status === 'RASCUNHO' && (
                   <button
                     className="text-button"
                     onClick={() =>
-                      navegar(caminhoBusca({ texto: oportunidade.titulo }), {
-                        state: { selecionada: oportunidade.id },
-                      })
+                      executar(() => publicarOportunidade(o.id), 'Vaga publicada na busca.')
                     }
                   >
-                    Ver na busca
+                    Publicar
                   </button>
+                )}
+                {o.status !== 'RASCUNHO' && (
                   <button
                     className="text-button"
-                    onClick={() => confirmar(oportunidade, 'encerrar')}
+                    onClick={() => navegar(`/organizacao/${o.id}/candidatos`)}
                   >
-                    Encerrar vaga
+                    {o.status === 'ENCERRADA' ? 'Candidatos e presença' : 'Candidatos'}
                   </button>
-                  <button
-                    className="text-button"
-                    onClick={() => confirmar(oportunidade, 'cancelar')}
-                  >
-                    Cancelar vaga
+                )}
+                {o.status === 'ABERTA' && (
+                  <>
+                    <button
+                      className="text-button"
+                      onClick={() =>
+                        navegar(caminhoBusca({ texto: o.titulo }), {
+                          state: { selecionada: o.id },
+                        })
+                      }
+                    >
+                      Ver na busca
+                    </button>
+                    <button className="text-button" onClick={() => confirmar(o, 'encerrar')}>
+                      Encerrar
+                    </button>
+                  </>
+                )}
+                {(o.status === 'RASCUNHO' || o.status === 'ABERTA') && (
+                  <button className="text-button" onClick={() => confirmar(o, 'cancelar')}>
+                    <XCircle size={16} /> {o.status === 'RASCUNHO' ? 'Descartar' : 'Cancelar'}
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </article>
           ))}
         </div>

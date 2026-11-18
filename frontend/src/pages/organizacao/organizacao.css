@@ -578,3 +578,112 @@
   font-size: 13px;
   color: var(--muted);
 }
+
+/* painel (GET /api/organizacao/painel) */
+.ong-stats {
+  grid-template-columns: repeat(4, 1fr);
+  margin-bottom: 16px;
+}
+.ong-indicadores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 26px;
+  margin-bottom: 38px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.ong-indicadores span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.ong-indicadores strong {
+  color: #2d2d2d;
+}
+.ong-heading-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.ong-status.draft {
+  background: #fff4dc;
+  color: #6b4a00;
+}
+@media (max-width: 760px) {
+  .ong-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.ong-habilidades {
+  border: 0;
+  padding: 0;
+  margin: 0 0 18px;
+}
+.ong-habilidades legend {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.ong-habilidades > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.ong-habilidades button {
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 14px;
+}
+.ong-habilidades button[aria-pressed='true'] {
+  background: var(--tint);
+  border-color: var(--primary);
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+.candidato-texto {
+  margin: 6px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.presenca,
+.equipe-desativar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+.presenca label,
+.equipe-desativar label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.presenca input {
+  width: 80px;
+  border: 1px solid #999;
+  border-radius: 6px;
+  padding: 8px;
+}
+.equipe-desativar select {
+  border: 1px solid #999;
+  border-radius: 6px;
+  padding: 8px;
+  min-width: 180px;
+}
+.equipe-form {
+  margin-top: 36px;
+  max-width: 560px;
+}
+.equipe-form h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ong-status.pending {
+  background: #fff4dc;
+  color: #6b4a00;
+}
