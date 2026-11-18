@@ -129,6 +129,8 @@ Todas as rotas estão documentadas no Swagger. Resumo:
 | Vagas | `POST /api/oportunidades`, `PUT /api/oportunidades/{id}`, `POST /api/oportunidades/{id}/publicar`, `/encerrar`, `/cancelar` | Gestor cria; responsável ou gestor alteram |
 | Candidatura | `POST /api/oportunidades/{id}/candidaturas`, `GET /api/candidaturas/minhas`, `POST /api/candidaturas/{id}/cancelar` | Voluntário |
 | Decisão | `POST /api/candidaturas/{id}/aceitar`, `/rejeitar` | Responsável ou gestor |
+| Equipe | `GET` e `POST /api/organizacao/equipe`, `POST /api/organizacao/equipe/{id}/desativar` | Gestor |
+| Painel | `GET /api/organizacao/painel` | Gestor (organização inteira) ou coordenador (só as vagas dele) |
 | Participação | `POST /api/participacoes/{id}/presenca`, `/ausencia` | Responsável ou gestor |
 | Histórico | `GET /api/participacoes/minhas` | Voluntário |
 
