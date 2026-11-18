@@ -70,7 +70,7 @@ docker compose --profile app up -d --build
 A primeira vez demora alguns minutos, porque o Docker baixa as dependências e compila o projeto. Depois:
 
 - Frontend: http://localhost:5173
-- API e Swagger: http://localhost:8080/swagger-ui.html
+- API e Swagger: http://localhost:8080/swagger-ui.html (a API também responde pelo front, em http://localhost:5173/api)
 - Usuários da demonstração: tabela em [Banco de dados](#banco-de-dados)
 
 Para parar: `docker compose --profile app down`. Para recomeçar com o banco zerado: `docker compose --profile app down -v`. Se mudar o código, rode o primeiro comando de novo.
