@@ -25,7 +25,7 @@ function sql(comando) {
 async function entrar(page, email) {
   await page.goto('/entrar');
   await page.getByLabel('Endereço de e-mail').fill(email);
-  await page.getByRole('button', { name: 'Continuar' }).click();
+  await page.getByRole('button', { name: 'Continuar', exact: true }).click();
   await page.getByLabel('Senha', { exact: true }).fill(SENHA);
   await page.getByRole('button', { name: 'Entrar', exact: true }).click();
   await expect(page).not.toHaveURL(/\/entrar/);
@@ -40,7 +40,7 @@ function daquiA(dias) {
 test('gestora publica uma vaga com habilidade e responsável', async ({ page }) => {
   await entrar(page, ANA);
   await expect(page).toHaveURL(/\/organizacao/);
-  await expect(page.getByText('Vagas abertas')).toBeVisible();
+  await expect(page.locator('.ong-stats')).toContainText('Vagas abertas');
 
   await page.getByRole('button', { name: 'Anunciar uma vaga' }).click();
   await page.getByLabel('Título da vaga').fill(TITULO);
@@ -136,7 +136,7 @@ test('voluntária edita o perfil', async ({ page }) => {
 test('gestora cadastra e desativa um coordenador', async ({ page }) => {
   const email = `paulo.${Date.now()}@novoscaminhos.example.org`;
   await entrar(page, ANA);
-  await page.getByRole('button', { name: 'Equipe' }).click();
+  await page.getByRole('button', { name: 'Equipe', exact: true }).click();
 
   await page.getByLabel('Nome').fill('Paulo Teste');
   await page.getByLabel('E-mail').fill(email);
