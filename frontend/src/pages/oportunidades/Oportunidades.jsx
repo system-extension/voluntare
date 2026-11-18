@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { listarMinhasCandidaturas } from '../../api/candidaturas';
 import { listarOportunidades } from '../../api/oportunidades';
 import BarraBusca from '../../components/busca/BarraBusca';
 import CartaoOportunidade from '../../components/oportunidades/CartaoOportunidade';
@@ -10,6 +11,7 @@ import Paginacao from '../../components/oportunidades/Paginacao';
 import Carregando from '../../components/ui/Carregando';
 import ErroCarregamento from '../../components/ui/ErroCarregamento';
 import useCarregar from '../../hooks/useCarregar';
+import useConta from '../../hooks/useConta';
 import useModal from '../../hooks/useModal';
 import useTitulo from '../../hooks/useTitulo';
 import useVagasSalvas from '../../hooks/useVagasSalvas';
@@ -33,6 +35,17 @@ export default function Oportunidades() {
   const { state } = useLocation();
   const { abrir } = useModal();
   const { estaSalva, alternar } = useVagasSalvas();
+  const { usuario } = useConta();
+  const voluntario = usuario?.papel === 'VOLUNTARIO';
+
+  // Para o detalhe mostrar "você já se candidatou" em vez do botão
+  const minhas = useCarregar(
+    () => (voluntario ? listarMinhasCandidaturas() : Promise.resolve([])),
+    [usuario?.id],
+  );
+  const candidaturaPorVaga = Object.fromEntries(
+    (minhas.dados ?? []).map((c) => [c.oportunidade.id, c]),
+  );
 
   // Vinda de "Minhas vagas" ou da área da organização: já abre a vaga escolhida.
   const [selecionadaId, setSelecionadaId] = useState(state?.selecionada ?? null);
@@ -74,7 +87,7 @@ export default function Oportunidades() {
             {filtros.texto ? `Vagas de ${filtros.texto}` : 'Vagas de voluntariado'}
             {filtros.local && ` em ${filtros.local}`}
           </h1>
-          <p>Oportunidades de demonstração</p>
+          <p>Vagas abertas que ainda não começaram</p>
         </div>
 
         {erro ? (
@@ -129,8 +142,11 @@ export default function Oportunidades() {
                 oportunidade={selecionada}
                 visivelNoCelular={detalheNoCelular}
                 salva={estaSalva(selecionada.id)}
+                minhaCandidatura={candidaturaPorVaga[selecionada.id]}
                 aoVoltar={() => setDetalheNoCelular(false)}
-                aoCandidatar={() => abrir('candidatura', { oportunidade: selecionada })}
+                aoCandidatar={() =>
+                  abrir('candidatura', { oportunidade: selecionada, aoConcluir: minhas.recarregar })
+                }
                 aoSalvar={() => alternar(selecionada.id)}
                 aoAbrirOrganizacao={() =>
                   abrir('organizacao', { organizacao: selecionada.organizacao })

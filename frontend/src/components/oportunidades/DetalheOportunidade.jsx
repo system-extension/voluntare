@@ -1,5 +1,13 @@
-import { ArrowLeft, ArrowRight, Bookmark, CalendarDays, MapPin, Users } from 'lucide-react';
-import { CAUSAS, rotulo } from '../../api/rotulos';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bookmark,
+  CalendarDays,
+  MapPin,
+  UserRound,
+  Users,
+} from 'lucide-react';
+import { CAUSAS, STATUS_CANDIDATURA, rotulo } from '../../api/rotulos';
 import { formatarPeriodo, textoVagas } from '../../utils/datas';
 
 /** Painel lateral com os dados completos da oportunidade selecionada. */
@@ -7,6 +15,7 @@ export default function DetalheOportunidade({
   oportunidade,
   visivelNoCelular,
   salva,
+  minhaCandidatura,
   aoVoltar,
   aoCandidatar,
   aoSalvar,
@@ -31,9 +40,15 @@ export default function DetalheOportunidade({
           {cidade}, {uf}
         </p>
         <div className="detail-actions">
-          <button className="primary-button" onClick={aoCandidatar}>
-            Quero me candidatar <ArrowRight size={20} />
-          </button>
+          {minhaCandidatura ? (
+            <span className="detail-tag">
+              Você já se candidatou: {rotulo(STATUS_CANDIDATURA, minhaCandidatura.status)}
+            </span>
+          ) : (
+            <button className="primary-button" onClick={aoCandidatar}>
+              Quero me candidatar <ArrowRight size={20} />
+            </button>
+          )}
           <button
             className={`icon-button detail-save ${salva ? 'saved' : ''}`}
             onClick={aoSalvar}
@@ -76,13 +91,40 @@ export default function DetalheOportunidade({
         <section>
           <h3>Descrição completa da vaga</h3>
           <p className="local-job-text">{oportunidade.descricao}</p>
+          {oportunidade.atividades && (
+            <>
+              <h4>Atividades</h4>
+              <p className="local-job-text">{oportunidade.atividades}</p>
+            </>
+          )}
+          {oportunidade.requisitos && (
+            <>
+              <h4>Requisitos</h4>
+              <p className="local-job-text">{oportunidade.requisitos}</p>
+            </>
+          )}
           <h4>Causa</h4>
           <span className="detail-tag">{rotulo(CAUSAS, oportunidade.causa)}</span>
-          <p className="demo-note">
-            Esta é uma oportunidade fictícia para demonstração do Voluntare. Nenhuma candidatura
-            será enviada.
-          </p>
+          {oportunidade.habilidades?.length > 0 && (
+            <>
+              <h4>Habilidades desejadas</h4>
+              <div className="tags">
+                {oportunidade.habilidades.map((h) => (
+                  <span key={h.id}>{h.nome}</span>
+                ))}
+              </div>
+              <p className="muted">São só uma referência: qualquer pessoa pode se candidatar.</p>
+            </>
+          )}
         </section>
+        {oportunidade.responsavel && (
+          <section>
+            <h3>Responsável pela vaga</h3>
+            <p className="inline-icon">
+              <UserRound size={19} /> {oportunidade.responsavel.nome} · {organizacao.nome}
+            </p>
+          </section>
+        )}
       </div>
     </aside>
   );
