@@ -1,0 +1,83 @@
+# Confere que o projeto sobe em outra máquina:
+# - Linux: tudo pelo Docker (banco, backend e front), como no README
+# - Windows: build do backend com o mvnw.cmd e do front com o npm
+name: Portabilidade
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'compose.yaml'
+      - '.gitattributes'
+      - '.github/workflows/portabilidade.yml'
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portabilidade-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docker:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - run: docker compose --profile app up -d --build
+
+      - name: Backend responde com a massa de demonstração
+        run: |
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:8080/api/oportunidades > resposta.json; then break; fi
+            sleep 3
+          done
+          jq -e '.itens | length > 0' resposta.json
+
+      - name: Login com usuário da demonstração
+        run: |
+          curl -sf -X POST http://localhost:8080/api/auth/login -H 'Content-Type: application/json' \
+            -d '{"email": "ana@novoscaminhos.example.org", "senha": "Voluntare@2026"}' | jq -e '.token'
+
+      - name: Front responde e repassa /api para o backend
+        run: |
+          curl -sf http://localhost:5173/ | grep -q '<div id="root">'
+          curl -sf http://localhost:5173/api/oportunidades | jq -e '.itens | length > 0'
+
+      - if: failure()
+        run: docker compose --profile app logs
+
+      - if: always()
+        run: docker compose --profile app down -v
+
+  windows:
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+      # Os testes precisam de Docker com contêiner Linux e rodam no workflow Backend; aqui só o build
+      - name: Backend com o Maven Wrapper do Windows
+        working-directory: backend
+        run: .\mvnw.cmd -B -DskipTests package
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Front
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
