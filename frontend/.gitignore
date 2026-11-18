@@ -4,3 +4,7 @@ node_modules/
 # Configuração local (o modelo versionado é o .env.example)
 .env.local
 .env.*.local
+
+# Resultados dos testes de ponta a ponta (Playwright)
+test-results/
+playwright-report/
