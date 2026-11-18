@@ -44,6 +44,18 @@ public interface OportunidadeRepository
     List<Oportunidade> findByOrganizacaoIdAndResponsavelIdOrderByCriadoEmDescIdDesc(UUID organizacaoId,
             UUID responsavelId);
 
+    /** Vagas em andamento (rascunho ou aberta) pelas quais a pessoa responde. Usado ao desativar alguém da equipe. */
+    List<Oportunidade> findByResponsavelIdAndStatusIn(UUID responsavelId, Collection<StatusOportunidade> status);
+
+    /** Linhas [responsavel_id, quantidade] das vagas em rascunho ou abertas da organização. */
+    @Query("""
+            SELECT o.responsavel.id, count(o) FROM Oportunidade o
+            WHERE o.organizacao.id = :organizacaoId AND o.status IN :status
+            GROUP BY o.responsavel.id
+            """)
+    List<Object[]> contarPorResponsavel(@Param("organizacaoId") UUID organizacaoId,
+            @Param("status") Collection<StatusOportunidade> status);
+
     /**
      * SELECT ... FOR UPDATE: trava a linha da vaga até o fim da transação.
      * Dois aceites ao mesmo tempo na mesma vaga ficam em fila; o segundo só conta as vagas
