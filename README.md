@@ -4,6 +4,67 @@ Plataforma web para gestão de voluntariado. Permite publicar oportunidades, rec
 
 Projeto P04 da Fábrica de Software, Engenharia de Software (Univille).
 
+---
+
+## ▶ Como executar (avaliação)
+
+> **Só é preciso ter o Docker Desktop instalado e aberto.** Não precisa instalar Java, Node nem PostgreSQL: o Docker baixa e compila tudo.
+
+**1. Instale e abra o Docker Desktop**
+
+Baixe em https://www.docker.com/products/docker-desktop/, instale e abra. Espere aparecer **Engine running** no canto inferior esquerdo da janela do Docker. No Windows, se o instalador pedir o WSL 2, aceite e reinicie o computador.
+
+**2. Baixe o projeto**
+
+Com Git:
+
+```
+git clone https://github.com/system-extension/voluntare.git
+cd voluntare
+```
+
+Sem Git: no GitHub, clique em **Code > Download ZIP**, extraia e abra um terminal (PowerShell no Windows) dentro da pasta extraída, onde está o arquivo `compose.yaml`.
+
+**3. Suba o sistema** (um comando, dentro da pasta do projeto)
+
+```
+docker compose --profile app up -d --build
+```
+
+A primeira vez leva de 5 a 10 minutos. Quando o comando terminar, aguarde mais **1 minuto** para o backend iniciar.
+
+**4. Acesse**
+
+| O quê | Endereço |
+|---|---|
+| Sistema | http://localhost:5173 |
+| Documentação da API (Swagger) | http://localhost:8080/swagger-ui.html |
+
+**5. Entre com um usuário de teste** (senha de todos: `Voluntare@2026`)
+
+| Perfil | E-mail | O que dá para fazer |
+|---|---|---|
+| Voluntária | `fernanda@example.com` | Buscar vagas, candidatar-se, ver candidaturas e histórico de horas, editar perfil |
+| Gestora da ONG | `ana@novoscaminhos.example.org` | Painel, criar e publicar vagas, aceitar candidatos, registrar presença, gerenciar a equipe |
+| Coordenador da ONG | `bruno@novoscaminhos.example.org` | Operar só as vagas pelas quais é responsável |
+
+Também é possível criar uma conta nova de voluntário ou cadastrar uma ONG pela tela de entrar.
+
+**Se algo der errado**
+
+| Problema | Solução |
+|---|---|
+| `docker` não é reconhecido como comando | O Docker Desktop não está instalado ou o terminal foi aberto antes da instalação. Instale, abra o Docker Desktop e abra um terminal novo. |
+| Erro de conexão com o Docker (`cannot connect`, `pipe`, `daemon`) | O Docker Desktop não está aberto. Abra e espere **Engine running**. |
+| `port is already allocated` ou `address already in use` com **5432** | Já existe um PostgreSQL nessa máquina. Rode `docker compose --profile app down` e suba de novo usando outra porta. PowerShell: `$env:DB_PORT="5433"; docker compose --profile app up -d --build`. Prompt de comando (cmd): `set DB_PORT=5433` e depois o comando de subir. Linux/macOS: `DB_PORT=5433 docker compose --profile app up -d --build`. |
+| Porta **8080** ou **5173** em uso | Feche o programa que usa a porta (outro servidor ou projeto) e rode o comando de subir de novo. |
+| A página abre mas mostra erro ao carregar as vagas | O backend ainda está iniciando. Aguarde 1 minuto e recarregue a página. |
+| Quer ver o que está acontecendo | `docker compose --profile app logs backend` |
+
+Para desligar: `docker compose --profile app down`. Para voltar os dados ao estado inicial: `docker compose --profile app down -v` e subir de novo.
+
+---
+
 ## Integrantes
 
 | Integrante | Responsabilidade primária |
@@ -57,25 +118,9 @@ Não fazemos commit direto na `main`. Todo trabalho entra por Pull Request, revi
 - [Plano e evidências de testes](docs/testes.md)
 - [Mockups e fluxo de telas](docs/mockups/README.md)
 
-## Como executar
+## Ambiente de desenvolvimento
 
-### Jeito mais rápido: só com o Docker
-
-Serve para apresentar ou testar o sistema em qualquer computador. Só precisa do Docker Desktop (no Windows, com WSL 2; veja a instalação abaixo). Na raiz do repositório:
-
-```
-docker compose --profile app up -d --build
-```
-
-A primeira vez demora alguns minutos, porque o Docker baixa as dependências e compila o projeto. Depois:
-
-- Frontend: http://localhost:5173
-- API e Swagger: http://localhost:8080/swagger-ui.html (a API também responde pelo front, em http://localhost:5173/api)
-- Usuários da demonstração: tabela em [Banco de dados](#banco-de-dados)
-
-Para parar: `docker compose --profile app down`. Para recomeçar com o banco zerado: `docker compose --profile app down -v`. Se mudar o código, rode o primeiro comando de novo.
-
-Para desenvolver, o caminho abaixo é melhor: o backend e o front rodam na máquina e atualizam a cada mudança.
+Para só rodar o sistema, use o passo a passo do topo, em [Como executar (avaliação)](#-como-executar-avaliação). As seções abaixo são para quem vai desenvolver: o backend e o front rodam na máquina e atualizam a cada mudança.
 
 ### Pré-requisitos
 
