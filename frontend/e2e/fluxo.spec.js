@@ -14,9 +14,9 @@ const BRUNO = 'bruno@novoscaminhos.example.org';
 const FERNANDA = 'fernanda@example.com';
 const TITULO = `Mutirão de leitura ${Date.now()}`;
 
-/** Roda SQL no PostgreSQL do docker compose. Só para simular que a atividade já aconteceu. */
+/** Roda SQL no PostgreSQL do compose.avaliacao.yaml. Só para simular que a atividade já aconteceu. */
 function sql(comando) {
-  execSync(`docker compose exec -T postgres psql -U voluntare -d voluntare -v ON_ERROR_STOP=1`, {
+  execSync(`docker compose -f compose.avaliacao.yaml exec -T postgres psql -U voluntare -d voluntare -v ON_ERROR_STOP=1`, {
     cwd: '..',
     input: comando,
   });
