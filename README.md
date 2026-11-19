@@ -60,7 +60,7 @@ Também é possível criar uma conta nova de voluntário ou cadastrar uma ONG pe
 | Erro de conexão com o Docker (`cannot connect`, `pipe`, `daemon`) | O Docker Desktop não está aberto. Abra e espere **Engine running**. |
 | `no configuration file provided` ou `no such file` | O terminal não está na pasta certa. Volte ao passo 2 e abra o terminal na pasta que tem o `compose.yaml`. |
 | `port is already allocated` ou `address already in use` | A porta 5173 está ocupada por outro programa. Suba usando outra porta e acesse por ela. PowerShell: `$env:APP_PORT="8090"; docker compose -f compose.avaliacao.yaml up -d --build --wait`. Prompt de comando (cmd): `set APP_PORT=8090` e depois o comando de subir. Linux/macOS: `APP_PORT=8090 docker compose -f compose.avaliacao.yaml up -d --build --wait`. Depois abra http://localhost:8090. |
-| Erro de rede ou `timeout` ao baixar | A internet oscilou durante o download. Rode o mesmo comando de novo: ele continua de onde parou. |
+| Erro ao baixar dependências (`timeout`, `Could not resolve`, `Could not find artifact`, `failed to fetch`) | A internet ou o repositório de pacotes oscilou durante o download. Rode o mesmo comando de novo: ele continua de onde parou. |
 
 Só a porta do site é usada no computador, então um PostgreSQL ou outro servidor já instalado não atrapalha.
 
