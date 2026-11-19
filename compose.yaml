@@ -1,6 +1,9 @@
 # Ambiente local, na raiz do repositório:
 #   docker compose up -d                        sobe só o PostgreSQL (backend e front rodam na máquina)
 #   docker compose --profile app up -d --build  sobe tudo: banco, backend (8080) e front (5173)
+# nome fixo do projeto: rodar de outra pasta reaproveita os mesmos contêineres
+name: voluntare
+
 services:
   postgres:
     image: postgres:16-alpine

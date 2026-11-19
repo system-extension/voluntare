@@ -8,11 +8,13 @@ Projeto P04 da Fábrica de Software, Engenharia de Software (Univille).
 
 ## ▶ Como executar (avaliação)
 
-> **Só é preciso ter o Docker Desktop instalado e aberto.** Não precisa instalar Java, Node nem PostgreSQL: o Docker baixa e compila tudo.
+> **Só é preciso ter o Docker Desktop instalado e aberto.** Não precisa instalar Java, Node nem PostgreSQL: o Docker baixa e compila tudo. Precisa de internet na primeira vez, uns 4 GB de RAM livres e 5 GB de disco.
 
 **1. Instale e abra o Docker Desktop**
 
-Baixe em https://www.docker.com/products/docker-desktop/, instale e abra. Espere aparecer **Engine running** no canto inferior esquerdo da janela do Docker. No Windows, se o instalador pedir o WSL 2, aceite e reinicie o computador.
+Baixe em https://www.docker.com/products/docker-desktop/ e instale. No Windows, se o instalador pedir o WSL 2, aceite e reinicie o computador (se ele não instalar sozinho, rode `wsl --install` no PowerShell como administrador e reinicie).
+
+Abra o Docker Desktop, aceite os termos de uso (o login é opcional, pode pular) e espere aparecer **Engine running** no canto inferior esquerdo da janela.
 
 **2. Baixe o projeto**
 
@@ -23,15 +25,15 @@ git clone https://github.com/system-extension/voluntare.git
 cd voluntare
 ```
 
-Sem Git: no GitHub, clique em **Code > Download ZIP**, extraia e abra um terminal (PowerShell no Windows) dentro da pasta extraída, onde está o arquivo `compose.yaml`.
+Sem Git: baixe o ZIP em https://github.com/system-extension/voluntare/archive/refs/heads/main.zip e extraia. Entre nas pastas até chegar na que tem o arquivo `compose.yaml` (normalmente `voluntare-main`). Nessa pasta, clique com o botão direito num espaço vazio e escolha **Abrir no Terminal** (no Windows 10: segure Shift, clique com o botão direito e escolha **Abrir janela do PowerShell aqui**).
 
-**3. Suba o sistema** (um comando, dentro da pasta do projeto)
+**3. Suba o sistema** (no terminal, dentro da pasta que tem o `compose.yaml`)
 
 ```
 docker compose --profile app up -d --build
 ```
 
-A primeira vez leva de 5 a 10 minutos. Quando o comando terminar, aguarde mais **1 minuto** para o backend iniciar.
+A primeira vez leva de 5 a 10 minutos. Quando terminar, aguarde mais **1 minuto** e confira com `docker compose --profile app ps`: os três serviços (`postgres`, `backend` e `frontend`) precisam aparecer como `running` ou `Up`.
 
 **4. Acesse**
 
@@ -54,14 +56,15 @@ Também é possível criar uma conta nova de voluntário ou cadastrar uma ONG pe
 
 | Problema | Solução |
 |---|---|
-| `docker` não é reconhecido como comando | O Docker Desktop não está instalado ou o terminal foi aberto antes da instalação. Instale, abra o Docker Desktop e abra um terminal novo. |
+| `docker` não é reconhecido como comando | Feche o terminal e abra outro depois que o Docker Desktop estiver aberto. Se continuar, o Docker Desktop não está instalado. |
 | Erro de conexão com o Docker (`cannot connect`, `pipe`, `daemon`) | O Docker Desktop não está aberto. Abra e espere **Engine running**. |
-| `port is already allocated` ou `address already in use` com **5432** | Já existe um PostgreSQL nessa máquina. Rode `docker compose --profile app down` e suba de novo usando outra porta. PowerShell: `$env:DB_PORT="5433"; docker compose --profile app up -d --build`. Prompt de comando (cmd): `set DB_PORT=5433` e depois o comando de subir. Linux/macOS: `DB_PORT=5433 docker compose --profile app up -d --build`. |
+| `no configuration file provided` | O terminal não está na pasta certa. Volte ao passo 2 e abra o terminal na pasta que tem o `compose.yaml`. |
+| `port is already allocated` ou `address already in use` com **5432** | Já existe um PostgreSQL nessa máquina. Rode `docker compose --profile app down` e suba de novo com outra porta, na mesma janela do terminal. PowerShell: `$env:DB_PORT="5433"; docker compose --profile app up -d --build`. Prompt de comando (cmd): `set DB_PORT=5433` e depois o comando de subir. Linux/macOS: `DB_PORT=5433 docker compose --profile app up -d --build`. |
 | Porta **8080** ou **5173** em uso | Feche o programa que usa a porta (outro servidor ou projeto) e rode o comando de subir de novo. |
-| A página abre mas mostra erro ao carregar as vagas | O backend ainda está iniciando. Aguarde 1 minuto e recarregue a página. |
-| Quer ver o que está acontecendo | `docker compose --profile app logs backend` |
+| `container name ... is already in use` | Sobrou um contêiner de uma execução antiga. Rode `docker rm -f voluntare-postgres voluntare-backend voluntare-frontend` e suba de novo. |
+| A página abre mas mostra erro ao carregar as vagas | O backend ainda está iniciando. Aguarde 1 minuto e recarregue. Se continuar depois de 5 minutos, veja o log com `docker compose --profile app logs backend`. |
 
-Para desligar: `docker compose --profile app down`. Para voltar os dados ao estado inicial: `docker compose --profile app down -v` e subir de novo.
+Os comandos abaixo também são rodados na pasta do projeto. Para desligar: `docker compose --profile app down`. Para apagar os dados e voltar ao estado inicial: `docker compose --profile app down -v` e subir de novo.
 
 ---
 
