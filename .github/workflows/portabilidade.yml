@@ -9,6 +9,7 @@ on:
       - 'backend/**'
       - 'frontend/**'
       - 'compose.yaml'
+      - 'compose.avaliacao.yaml'
       - '.gitattributes'
       - '.github/workflows/portabilidade.yml'
   push:
@@ -28,31 +29,28 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - run: docker compose --profile app up -d --build
+      # o mesmo comando do README
+      - run: docker compose -f compose.avaliacao.yaml up -d --build --wait
 
       - name: Backend responde com a massa de demonstração
-        run: |
-          for i in $(seq 1 60); do
-            if curl -sf http://localhost:8080/api/oportunidades > resposta.json; then break; fi
-            sleep 3
-          done
-          jq -e '.itens | length > 0' resposta.json
+        run: curl -sf http://localhost:5173/api/oportunidades | jq -e '.itens | length > 0'
 
       - name: Login com usuário da demonstração
         run: |
-          curl -sf -X POST http://localhost:8080/api/auth/login -H 'Content-Type: application/json' \
+          curl -sf -X POST http://localhost:5173/api/auth/login -H 'Content-Type: application/json' \
             -d '{"email": "ana@novoscaminhos.example.org", "senha": "Voluntare@2026"}' | jq -e '.token'
 
-      - name: Front responde e repassa /api para o backend
+      - name: Front e Swagger respondem
         run: |
           curl -sf http://localhost:5173/ | grep -q '<div id="root">'
-          curl -sf http://localhost:5173/api/oportunidades | jq -e '.itens | length > 0'
+          curl -sfL http://localhost:5173/swagger-ui.html | grep -qi 'swagger'
+          curl -sf http://localhost:5173/v3/api-docs | jq -e '.paths | length > 0'
 
       - if: failure()
-        run: docker compose --profile app logs
+        run: docker compose -f compose.avaliacao.yaml logs
 
       - if: always()
-        run: docker compose --profile app down -v
+        run: docker compose -f compose.avaliacao.yaml down -v
 
   windows:
     runs-on: windows-2025

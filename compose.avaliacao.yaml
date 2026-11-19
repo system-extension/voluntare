@@ -1,0 +1,54 @@
+# Sistema inteiro (banco, backend e front) só com o Docker. É o que o README manda rodar:
+#   docker compose -f compose.avaliacao.yaml up -d --build --wait
+# Só a porta do site fica aberta no computador (5173, ou APP_PORT), então não briga
+# com PostgreSQL ou outro servidor que já esteja instalado. O --wait só termina
+# quando tudo estiver respondendo.
+name: voluntare-avaliacao
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: voluntare
+      POSTGRES_USER: voluntare
+      POSTGRES_PASSWORD: voluntare
+    volumes:
+      - dados:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U voluntare -d voluntare"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build: ./backend
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/voluntare
+      DB_USER: voluntare
+      DB_PASSWORD: voluntare
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # pronto quando a porta 8080 aceita conexão (o Spring abre a porta no fim da subida)
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8080"]
+      interval: 5s
+      timeout: 3s
+      start_period: 30s
+      retries: 60
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "${APP_PORT:-5173}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  dados:

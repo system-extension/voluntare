@@ -78,7 +78,7 @@ O `mvnw verify` gera o relatório do JaCoCo em `backend/target/site/jacoco/index
 `frontend/e2e/fluxo.spec.js`, com Playwright, contra o sistema inteiro no Docker (banco, backend e front). Roda no CI a cada PR (`.github/workflows/e2e.yml`) e na máquina com:
 
 ```
-docker compose --profile app up -d --build   # na raiz
+docker compose -f compose.avaliacao.yaml up -d --build --wait   # na raiz
 cd frontend
 npx playwright install chromium               # só na primeira vez
 npm run e2e

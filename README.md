@@ -30,17 +30,17 @@ Sem Git: baixe o ZIP em https://github.com/system-extension/voluntare/archive/re
 **3. Suba o sistema** (no terminal, dentro da pasta que tem o `compose.yaml`)
 
 ```
-docker compose --profile app up -d --build
+docker compose -f compose.avaliacao.yaml up -d --build --wait
 ```
 
-A primeira vez leva de 5 a 10 minutos. Quando terminar, aguarde mais **1 minuto** e confira com `docker compose --profile app ps`: os três serviços (`postgres`, `backend` e `frontend`) precisam aparecer como `running` ou `Up`.
+A primeira vez leva de 5 a 10 minutos, porque o Docker baixa e compila tudo. O comando só termina quando o sistema estiver pronto para usar. No fim aparecem as linhas `voluntare-avaliacao-postgres-1`, `-backend-1` e `-frontend-1` como `Healthy`.
 
 **4. Acesse**
 
 | O quê | Endereço |
 |---|---|
 | Sistema | http://localhost:5173 |
-| Documentação da API (Swagger) | http://localhost:8080/swagger-ui.html |
+| Documentação da API (Swagger) | http://localhost:5173/swagger-ui.html |
 
 **5. Entre com um usuário de teste** (senha de todos: `Voluntare@2026`)
 
@@ -58,13 +58,13 @@ Também é possível criar uma conta nova de voluntário ou cadastrar uma ONG pe
 |---|---|
 | `docker` não é reconhecido como comando | Feche o terminal e abra outro depois que o Docker Desktop estiver aberto. Se continuar, o Docker Desktop não está instalado. |
 | Erro de conexão com o Docker (`cannot connect`, `pipe`, `daemon`) | O Docker Desktop não está aberto. Abra e espere **Engine running**. |
-| `no configuration file provided` | O terminal não está na pasta certa. Volte ao passo 2 e abra o terminal na pasta que tem o `compose.yaml`. |
-| `port is already allocated` ou `address already in use` com **5432** | Já existe um PostgreSQL nessa máquina. Rode `docker compose --profile app down` e suba de novo com outra porta, na mesma janela do terminal. PowerShell: `$env:DB_PORT="5433"; docker compose --profile app up -d --build`. Prompt de comando (cmd): `set DB_PORT=5433` e depois o comando de subir. Linux/macOS: `DB_PORT=5433 docker compose --profile app up -d --build`. |
-| Porta **8080** ou **5173** em uso | Feche o programa que usa a porta (outro servidor ou projeto) e rode o comando de subir de novo. |
-| `container name ... is already in use` | Sobrou um contêiner de uma execução antiga. Rode `docker rm -f voluntare-postgres voluntare-backend voluntare-frontend` e suba de novo. |
-| A página abre mas mostra erro ao carregar as vagas | O backend ainda está iniciando. Aguarde 1 minuto e recarregue. Se continuar depois de 5 minutos, veja o log com `docker compose --profile app logs backend`. |
+| `no configuration file provided` ou `no such file` | O terminal não está na pasta certa. Volte ao passo 2 e abra o terminal na pasta que tem o `compose.yaml`. |
+| `port is already allocated` ou `address already in use` | A porta 5173 está ocupada por outro programa. Suba usando outra porta e acesse por ela. PowerShell: `$env:APP_PORT="8090"; docker compose -f compose.avaliacao.yaml up -d --build --wait`. Prompt de comando (cmd): `set APP_PORT=8090` e depois o comando de subir. Linux/macOS: `APP_PORT=8090 docker compose -f compose.avaliacao.yaml up -d --build --wait`. Depois abra http://localhost:8090. |
+| Erro de rede ou `timeout` ao baixar | A internet oscilou durante o download. Rode o mesmo comando de novo: ele continua de onde parou. |
 
-Os comandos abaixo também são rodados na pasta do projeto. Para desligar: `docker compose --profile app down`. Para apagar os dados e voltar ao estado inicial: `docker compose --profile app down -v` e subir de novo.
+Só a porta do site é usada no computador, então um PostgreSQL ou outro servidor já instalado não atrapalha.
+
+Os comandos abaixo também são rodados na pasta do projeto. Para desligar: `docker compose -f compose.avaliacao.yaml down`. Para apagar os dados e voltar ao estado inicial: `docker compose -f compose.avaliacao.yaml down -v` e subir de novo.
 
 ---
 
@@ -213,4 +213,4 @@ npm run dev
 
 ### Teste de ponta a ponta
 
-Com o projeto no ar pelo Docker (`docker compose --profile app up -d --build`), o fluxo de demonstração roda no navegador com `npm run e2e` dentro de `frontend` (na primeira vez, `npx playwright install chromium`). Detalhes em [docs/testes.md](docs/testes.md#ponta-a-ponta-navegador).
+Com o projeto no ar pelo Docker (`docker compose -f compose.avaliacao.yaml up -d --build --wait`), o fluxo de demonstração roda no navegador com `npm run e2e` dentro de `frontend` (na primeira vez, `npx playwright install chromium`). Detalhes em [docs/testes.md](docs/testes.md#ponta-a-ponta-navegador).
