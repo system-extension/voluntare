@@ -1,0 +1,267 @@
+.landing-main {
+  flex: 1;
+}
+/* Página institucional para ONGs. Mesmas cores e botões do restante do site. */
+.ong-landing {
+  width: 100%;
+}
+.ong-hero {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 56px 24px 64px;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+.ong-sobretitulo {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+.ong-hero h1 {
+  font-size: 44px;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+.ong-hero-descricao {
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin-bottom: 28px;
+  max-width: 34em;
+}
+.ong-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 24px;
+}
+.ong-landing .primary-button {
+  text-decoration: none;
+  min-height: 48px;
+  padding: 12px 22px;
+}
+.ong-link-secundario {
+  color: var(--primary);
+  font-weight: 700;
+}
+.ong-aviso {
+  margin-top: 18px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* Vitrine: cartão de vaga e candidatura desenhados com a própria interface. */
+.ong-vitrine {
+  position: relative;
+  background: var(--tint);
+  border-radius: 24px;
+  padding: 40px 36px 72px;
+}
+.ong-vitrine-cartao {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 6px 20px #0000000f;
+}
+.ong-vitrine-causa {
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 10px;
+  background: var(--tint);
+  color: var(--primary);
+}
+.ong-vitrine-cartao strong {
+  font-size: 18px;
+}
+.ong-vitrine-org,
+.ong-vitrine-local {
+  color: var(--muted);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ong-vitrine-vagas {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.ong-vitrine-barra {
+  height: 8px;
+  border-radius: 4px;
+  background: #ecebea;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+.ong-vitrine-barra span {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+}
+.ong-vitrine-candidato {
+  position: absolute;
+  left: 64px;
+  right: 16px;
+  bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 10px 28px #00000017;
+}
+.ong-vitrine-candidato > span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  font-size: 14px;
+}
+.ong-vitrine-candidato small {
+  color: var(--muted);
+  font-size: 13px;
+}
+.ong-vitrine-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 700;
+}
+.ong-vitrine-aceitar {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--primary);
+  padding: 6px 12px;
+  border-radius: 8px;
+}
+
+/* Seções */
+.ong-secao {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 56px 24px;
+}
+.ong-secao h2,
+.ong-final h2 {
+  font-size: 30px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin-bottom: 28px;
+}
+.ong-secao-clara {
+  max-width: none;
+  background: #f7f7f6;
+}
+.ong-secao-clara > * {
+  max-width: 1072px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.ong-passos {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.ong-passos h3,
+.ong-recurso h3 {
+  font-size: 18px;
+  margin: 14px 0 6px;
+}
+.ong-passos p,
+.ong-recurso p {
+  color: var(--muted);
+  line-height: 1.6;
+  margin: 0;
+}
+.ong-passo-numero {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  font-weight: 800;
+}
+.ong-recursos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+.ong-recurso {
+  background: #fff;
+  border: 1px solid #e4e2e0;
+  border-radius: 14px;
+  padding: 24px;
+}
+.ong-recurso-icone {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--tint);
+  color: var(--primary);
+}
+.ong-final {
+  text-align: center;
+  padding: 80px 24px 80px;
+  color: var(--primary-dark);
+}
+.ong-final h2 {
+  margin: 12px 0 8px;
+  color: #2d2d2d;
+}
+.ong-final p {
+  color: var(--muted);
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .ong-hero {
+    grid-template-columns: 1fr;
+    gap: 36px;
+    padding-top: 40px;
+  }
+  .ong-hero h1 {
+    font-size: 34px;
+  }
+  .ong-passos,
+  .ong-recursos {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 520px) {
+  .ong-vitrine {
+    padding: 24px 18px 84px;
+  }
+  .ong-vitrine-candidato {
+    left: 18px;
+    right: 18px;
+  }
+  .ong-secao h2,
+  .ong-final h2 {
+    font-size: 24px;
+  }
+}

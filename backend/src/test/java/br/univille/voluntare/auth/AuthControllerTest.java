@@ -48,6 +48,36 @@ class AuthControllerTest {
     @Autowired
     private EntityManager em;
 
+    // ---------- verificar e-mail (1º passo da tela de acesso) ----------
+
+    @Test
+    void verificarEmailDizSeJaTemConta() throws Exception {
+        // Mesma normalização do login: espaços e maiúsculas não importam.
+        verificarEmail("  ANA@NovosCaminhos.example.org ")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.existe").value(true));
+        verificarEmail("ninguem@example.com")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.existe").value(false));
+    }
+
+    @Test
+    void verificarEmailNaoRevelaPapelNemContaDesativada() throws Exception {
+        // marcos@ está desativado na V8: a resposta é igual à de uma conta ativa, e só tem "existe".
+        verificarEmail("marcos@patasamigas.example.org")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.existe").value(true))
+                .andExpect(jsonPath("$.papel").doesNotExist())
+                .andExpect(jsonPath("$.ativo").doesNotExist());
+    }
+
+    @Test
+    void verificarEmailRecusaEmailInvalido() throws Exception {
+        verificarEmail("nao-e-email")
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos[0].campo").value("email"));
+    }
+
     // ---------- login ----------
 
     @Test
@@ -218,6 +248,12 @@ class AuthControllerTest {
     }
 
     // ---------- ajudantes ----------
+
+    private ResultActions verificarEmail(String email) throws Exception {
+        return enviar("/api/auth/verificar-email", """
+                {"email": "%s"}
+                """.formatted(email));
+    }
 
     private ResultActions login(String email, String senha) throws Exception {
         return enviar("/api/auth/login", """

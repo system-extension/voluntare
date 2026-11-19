@@ -15,7 +15,7 @@ Toda regra nova ou alterada entra aqui antes (ou junto) do código. Se a regra v
 
 | ID | Regra | Origem | Onde | Situação |
 |---|---|---|---|---|
-| RN-01 | Existem três papéis: voluntário, coordenador e gestor. Não há administrador da plataforma | Q-02 | banco | ✅ ❓ |
+| RN-01 | Existem três papéis: voluntário, coordenador e gestor. Não há administrador da plataforma | Q-02 | banco | ✅ |
 | RN-02 | Gestor e coordenador pertencem a uma organização; o voluntário não pertence a nenhuma | Q-02 | banco | ✅ |
 | RN-03 | O gestor opera todas as vagas da sua organização; o coordenador só as vagas pelas quais responde | Q-06 | service | ✅ |
 | RN-04 | Vaga ou candidatura de outra organização é tratada como inexistente (não revela que existe) | D-20 | service | ✅ |
@@ -33,8 +33,8 @@ Toda regra nova ou alterada entra aqui antes (ou junto) do código. Se a regra v
 | RN-11 | Senha de 8 a 72 caracteres, guardada só como hash (BCrypt) | RNF | service | ✅ |
 | RN-12 | Login errado tem sempre a mesma resposta, exista o e-mail ou não | — | service | ✅ |
 | RN-13 | A sessão vale 8 horas; depois, a pessoa entra de novo | D-19 | service | ✅ |
-| RN-14 | O gestor cadastra e desativa coordenadores da sua organização | Q-06 | service | ⏳ |
-| RN-15 | Antes de desativar alguém, o gestor passa as vagas abertas dessa pessoa para outro responsável | — | service | ⏳ |
+| RN-14 | O gestor cadastra e desativa coordenadores da sua organização. A senha inicial do coordenador é definida pelo gestor. Gestor não é desativado pelo sistema | Q-06, D-26 | service | ✅ |
+| RN-15 | Ao desativar alguém, o gestor indica quem assume as vagas em rascunho ou abertas dessa pessoa; a troca e a desativação acontecem juntas | D-26 | service | ✅ |
 
 ## 3. Oportunidade
 
@@ -43,7 +43,7 @@ Toda regra nova ou alterada entra aqui antes (ou junto) do código. Se a regra v
 | RN-16 | Só o gestor cria vagas. O responsável é um gestor ou coordenador ativo da mesma organização; se não for escolhido, é quem criou | Q-06 | banco + service | ✅ |
 | RN-17 | Só o gestor troca o responsável de uma vaga | Q-06 | service | ✅ |
 | RN-18 | Toda vaga é presencial: endereço, cidade e UF obrigatórios | Q-10 | banco + service | ✅ |
-| RN-19 | A vaga tem uma única causa entre as cinco da interface. Retirar uma causa é só tirar do formulário; vagas antigas continuam com ela | Q-11, D-18 | banco + front | ✅ ❓ |
+| RN-19 | A vaga tem uma única causa entre as cinco fixas: Educação, Meio ambiente, Assistência social, Animais e Comunicação. O usuário não cadastra nem altera causas; incluir ou retirar uma é ajuste da equipe de desenvolvimento, quando solicitado. Vagas antigas continuam com a causa retirada | Q-11, D-18 | banco + front | ✅ |
 | RN-20 | A vaga pode ser salva como rascunho só com o título. Para ficar aberta precisa de descrição, causa, endereço, cidade, UF, início, fim e vagas | Q-12 | banco + service | ✅ |
 | RN-21 | A vaga acontece uma vez: um início e um fim, com o fim depois do início | Q-07 | banco + service | ✅ |
 | RN-22 | Ao abrir uma vaga, o início precisa estar no futuro. Na edição, só se o início for alterado | D-20 | service | ✅ |
@@ -63,7 +63,7 @@ Toda regra nova ou alterada entra aqui antes (ou junto) do código. Se a regra v
 | ID | Regra | Origem | Onde | Situação |
 |---|---|---|---|---|
 | RN-33 | Só voluntário se candidata | — | service | ✅ |
-| RN-34 | Uma candidatura por voluntário e vaga. Quem foi rejeitado ou desistiu não se candidata de novo | B1, Q-03 | banco + service | ✅ ❓ |
+| RN-34 | Uma candidatura por voluntário e vaga. Quem foi rejeitado ou desistiu não se candidata de novo | B1, Q-03 | banco + service | ✅ |
 | RN-35 | Só se candidata a vaga aberta que ainda não começou | B2 | service | ✅ |
 | RN-36 | Pode se candidatar a vaga preenchida: fica pendente, como lista de espera | D-22 | service | ✅ |
 | RN-37 | O responsável (ou o gestor) aceita ou rejeita; só candidatura pendente, só em vaga aberta | Q-06 | service | ✅ |
@@ -77,13 +77,13 @@ Toda regra nova ou alterada entra aqui antes (ou junto) do código. Se a regra v
 | ID | Regra | Origem | Onde | Situação |
 |---|---|---|---|---|
 | RN-42 | Depois do aceite, desistir cancela a participação (a candidatura continua aceita) | B6 | service | ✅ |
-| RN-43 | Desistir até 48 horas antes do início devolve a vaga (`CANCELADA`); depois disso, não devolve (`CANCELADA_TARDIA`). O prazo fica na tabela `parametro` | B6, Q-01 | service | ✅ ❓ |
+| RN-43 | Desistir até 48 horas antes do início devolve a vaga (`CANCELADA`); depois disso, não devolve (`CANCELADA_TARDIA`). O prazo fica na tabela `parametro` | B6, Q-01 | service | ✅ |
 | RN-44 | Depois que a atividade começou, o voluntário não desiste pelo sistema | D-22 | service | ✅ |
 | RN-45 | Presença, ausência e horas só para participação confirmada, registradas pelo responsável da vaga ou pelo gestor | B4 | banco + service | ✅ |
 | RN-46 | Presença e horas só depois do fim da atividade, e nunca em vaga cancelada | B5, Q-05 | service | ✅ |
 | RN-47 | Horas maiores que zero, com até duas casas decimais, obrigatórias para presente e no máximo a duração da atividade (fim − início) | B5, Q-09 | banco + service | ✅ |
 | RN-48 | Quem registrou e quando ficam gravados | RNF | banco + service | ✅ |
-| RN-57 | O registro de presença ou ausência é definitivo: não há correção pelo sistema | D-23 | service | ✅ ❓ |
+| RN-57 | O registro de presença ou ausência é definitivo: não há correção pelo sistema | D-23 | service | ✅ |
 
 ## 6. Histórico
 
@@ -106,13 +106,12 @@ Toda regra nova ou alterada entra aqui antes (ou junto) do código. Se a regra v
 
 | ID | Regra | Origem | Onde | Situação |
 |---|---|---|---|---|
-| RN-54 | O painel mostra vagas em rascunho, abertas, preenchidas (aberta e sem lugar) e encerradas | MVP | service | ⏳ |
-| RN-55 | Mostra participações por status e a soma de horas das presentes | MVP | service | ⏳ |
-| RN-56 | O gestor vê a organização inteira; o coordenador, só as vagas pelas quais responde | Q-06 | service | ⏳ |
+| RN-54 | O painel mostra vagas em rascunho, abertas, preenchidas (aberta e sem lugar) e encerradas | MVP | service | ✅ |
+| RN-55 | Mostra participações por status e a soma de horas das presentes | MVP | service | ✅ |
+| RN-56 | O gestor vê a organização inteira; o coordenador, só as vagas pelas quais responde | Q-06 | service | ✅ |
 
 ## Pontos em aberto com o PO
 
 Detalhes em [decisoes.md](decisoes.md), seção 5.
 
-- **RN-01:** o briefing cita um administrador; no modelo, o gestor da ONG faz esse papel.
-- **RN-34, RN-43** e as demais marcadas ❓: propostas da equipe aguardando validação.
+Nenhum no momento. Validadas com o PO: RN-01 (três papéis, sem administrador da plataforma), RN-19 (causas fixas, sem cadastro pelo usuário), RN-34 (uma candidatura por voluntário e vaga), RN-43 (prazo de 48 horas para devolver a vaga) e RN-57 (registro de presença definitivo).

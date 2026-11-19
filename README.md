@@ -59,6 +59,24 @@ Não fazemos commit direto na `main`. Todo trabalho entra por Pull Request, revi
 
 ## Como executar
 
+### Jeito mais rápido: só com o Docker
+
+Serve para apresentar ou testar o sistema em qualquer computador. Só precisa do Docker Desktop (no Windows, com WSL 2; veja a instalação abaixo). Na raiz do repositório:
+
+```
+docker compose --profile app up -d --build
+```
+
+A primeira vez demora alguns minutos, porque o Docker baixa as dependências e compila o projeto. Depois:
+
+- Frontend: http://localhost:5173
+- API e Swagger: http://localhost:8080/swagger-ui.html (a API também responde pelo front, em http://localhost:5173/api)
+- Usuários da demonstração: tabela em [Banco de dados](#banco-de-dados)
+
+Para parar: `docker compose --profile app down`. Para recomeçar com o banco zerado: `docker compose --profile app down -v`. Se mudar o código, rode o primeiro comando de novo.
+
+Para desenvolver, o caminho abaixo é melhor: o backend e o front rodam na máquina e atualizam a cada mudança.
+
 ### Pré-requisitos
 
 | Ferramenta | Versão | Para quê |
@@ -73,6 +91,7 @@ No Windows, pelo `winget`:
 winget install -e --id EclipseAdoptium.Temurin.21.JDK
 wsl --install --no-distribution
 winget install -e --id Docker.DockerDesktop
+winget install -e --id OpenJS.NodeJS.LTS
 ```
 
 Depois, reinicie o computador e abra o Docker Desktop uma vez para aceitar os termos.
@@ -123,12 +142,14 @@ Todas as rotas estão documentadas no Swagger. Resumo:
 | Área | Rotas | Acesso |
 |---|---|---|
 | Busca pública | `GET /api/oportunidades`, `GET /api/oportunidades/{id}`, `GET /api/habilidades` | Público |
-| Autenticação | `POST /api/auth/cadastro`, `POST /api/auth/cadastro-organizacao`, `POST /api/auth/login`, `GET /api/auth/eu` | Público / logado |
+| Autenticação | `POST /api/auth/verificar-email`, `POST /api/auth/cadastro`, `POST /api/auth/cadastro-organizacao`, `POST /api/auth/login`, `GET /api/auth/eu` | Público / logado |
 | Perfil do voluntário | `GET` e `PUT /api/voluntarios/eu` | Voluntário |
 | Área da organização | `GET /api/organizacao`, `GET /api/organizacao/oportunidades` (+ `/{id}`, `/{id}/historico`, `/{id}/candidaturas`) | Gestor ou coordenador |
 | Vagas | `POST /api/oportunidades`, `PUT /api/oportunidades/{id}`, `POST /api/oportunidades/{id}/publicar`, `/encerrar`, `/cancelar` | Gestor cria; responsável ou gestor alteram |
 | Candidatura | `POST /api/oportunidades/{id}/candidaturas`, `GET /api/candidaturas/minhas`, `POST /api/candidaturas/{id}/cancelar` | Voluntário |
 | Decisão | `POST /api/candidaturas/{id}/aceitar`, `/rejeitar` | Responsável ou gestor |
+| Equipe | `GET` e `POST /api/organizacao/equipe`, `POST /api/organizacao/equipe/{id}/desativar` | Gestor |
+| Painel | `GET /api/organizacao/painel` | Gestor (organização inteira) ou coordenador (só as vagas dele) |
 | Participação | `POST /api/participacoes/{id}/presenca`, `/ausencia` | Responsável ou gestor |
 | Histórico | `GET /api/participacoes/minhas` | Voluntário |
 
@@ -141,3 +162,7 @@ cd frontend
 npm ci
 npm run dev
 ```
+
+### Teste de ponta a ponta
+
+Com o projeto no ar pelo Docker (`docker compose --profile app up -d --build`), o fluxo de demonstração roda no navegador com `npm run e2e` dentro de `frontend` (na primeira vez, `npx playwright install chromium`). Detalhes em [docs/testes.md](docs/testes.md#ponta-a-ponta-navegador).

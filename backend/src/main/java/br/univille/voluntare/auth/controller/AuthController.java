@@ -17,6 +17,8 @@ import br.univille.voluntare.auth.dto.CadastroVoluntarioRequest;
 import br.univille.voluntare.auth.dto.LoginRequest;
 import br.univille.voluntare.auth.dto.SessaoResponse;
 import br.univille.voluntare.auth.dto.UsuarioResponse;
+import br.univille.voluntare.auth.dto.VerificacaoEmailRequest;
+import br.univille.voluntare.auth.dto.VerificacaoEmailResponse;
 import br.univille.voluntare.auth.service.AuthService;
 import br.univille.voluntare.shared.config.OpenApiConfig;
 import io.swagger.v3.oas.annotations.Operation;
@@ -45,6 +47,12 @@ public class AuthController {
     @Operation(summary = "Autocadastro da ONG com o seu gestor. Já devolve o token do gestor")
     public SessaoResponse cadastrarOrganizacao(@Valid @RequestBody CadastroOrganizacaoRequest dados) {
         return auth.cadastrarOrganizacao(dados);
+    }
+
+    @PostMapping("/verificar-email")
+    @Operation(summary = "Primeiro passo do acesso: diz se o e-mail já tem conta (senha ou cadastro)")
+    public VerificacaoEmailResponse verificarEmail(@Valid @RequestBody VerificacaoEmailRequest dados) {
+        return new VerificacaoEmailResponse(auth.emailCadastrado(dados.email()));
     }
 
     @PostMapping("/login")

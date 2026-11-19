@@ -29,7 +29,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthService {
 
-    // Mesma mensagem para e-mail inexistente e senha errada: não revela quais e-mails têm conta.
+    // Mesma mensagem para e-mail inexistente e senha errada. A existência do e-mail só é revelada
+    // pelo passo verificar-email (e pelo cadastro, que já recusava e-mail repetido): D-25.
     private static final String CREDENCIAIS_INVALIDAS = "E-mail ou senha inválidos.";
 
     private final UsuarioRepository usuarios;
@@ -69,6 +70,11 @@ public class AuthService {
         Usuario novoGestor = usuarios.save(
                 Usuario.gestor(organizacao, gestor.nome().trim(), emailGestor, senhas.encode(gestor.senha())));
         return sessao(novoGestor);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean emailCadastrado(String email) {
+        return usuarios.existsByEmailIgnoreCase(normalizarEmail(email));
     }
 
     @Transactional(readOnly = true)

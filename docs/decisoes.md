@@ -8,6 +8,7 @@ Status usados:
 
 - **Definida**: decisão técnica da equipe, justificada.
 - **Definida pela equipe**: decisão de negócio tomada pela equipe para destravar o modelo. Pode ser revista pelo PO.
+- **Validada pelo PO**: confirmada pelo professor.
 - **Adotada pela equipe, implementada no schema. Aguarda validação do PO**: proposta levada ao professor, ainda sem resposta registrada. O schema (migrações em `backend/src/main/resources/db/migration`) já segue a proposta; se o PO pedir ajuste, ele entra por nova migração.
 
 ## 1. Organização da sprint
@@ -50,6 +51,8 @@ Cada trilha é revisada por outra pessoa do grupo antes de entrar na `develop`.
 | D-22 | Candidatura: o voluntário pode se candidatar a vaga já preenchida (fica pendente, como lista de espera) e não pode depois que a atividade começou. A desistência é um endpoint só (`/candidaturas/{id}/cancelar`): pendente cancela a candidatura; aceita cancela a participação, e o prazo do `parametro` decide entre `CANCELADA` e `CANCELADA_TARDIA`. Depois do início não dá para desistir pelo sistema. O aceite trava a vaga com `SELECT ... FOR UPDATE` antes de contar as vagas | Bloquear candidatura em vaga cheia; dois endpoints de desistência; contar as vagas sem trava | Quem já foi aceito pode desistir a tempo e liberar o lugar para um pendente. Para o voluntário existe uma ação só, "desistir"; a regra de qual registro muda fica no backend. Sem a trava, dois aceites simultâneos leem a mesma contagem e passam do limite (regra 3), o que o teste `CorridaPelaUltimaVagaTest` reproduz | Definida |
 | D-23 | Presença: o responsável da vaga (ou o gestor) registra presença com horas ou ausência, uma vez, depois do fim da atividade e com a vaga aberta ou encerrada. Horas de 0,01 até a duração (fim − início), com duas casas. O registro é definitivo. O histórico do voluntário soma só as horas das presenças | Permitir corrigir o registro; exigir a vaga encerrada antes da presença | Registro definitivo segue o fluxo do DER (PRESENTE e AUSENTE são finais) e mantém o histórico confiável; uma correção pode entrar depois como ação própria, com motivo. Exigir o encerramento antes obrigaria um passo a mais sem ganho: o fim da atividade já marca quando a presença pode ser registrada (Q-05) | Definida |
 | D-24 | Habilidades desejadas na vaga: tabela `oportunidade_habilidade` (V9), até 10 por vaga, do mesmo catálogo do perfil do voluntário. São informativas: não impedem ninguém de se candidatar. O catálogo muda só por migração. O perfil do voluntário passa a ter edição de contato, disponibilidade, habilidades e interesses, e o responsável vê as habilidades de cada candidato | Classificar só por causa (decisão anterior); habilidade como requisito para candidatar-se; catálogo editável na tela | O briefing pede "habilidades desejadas" no cadastro da oportunidade, e o mesmo catálogo permite comparar a vaga com o perfil sem criar matching (fora do escopo). Como requisito, afastaria quem quer aprender (interesses). Sem administrador da plataforma, não há quem cuide de um catálogo editável | Definida |
+| D-25 | Acesso em dois passos: a tela pede só o e-mail e chama `POST /api/auth/verificar-email`, que responde apenas `{ existe }`. Com conta, segue para a senha; sem conta, para o cadastro de voluntário. O papel e se a conta está ativa só aparecem depois da senha. O cadastro da ONG continua com tela própria | Formulário único de e-mail e senha (usado até aqui); devolver também o papel na verificação | O fluxo é mais direto: a pessoa não precisa saber antes se já tem conta. Revelar que um e-mail existe já acontecia no cadastro (409 "Já existe uma conta com esse e-mail"), então o risco de enumeração é o mesmo; o papel ficaria a mais, sem uso antes do login, porque o token já diz para onde ir. Vai no corpo de um POST para o e-mail não ficar em URL nem em log de acesso. Limite de tentativas por IP fica para depois do MVP | Definida |
+| D-26 | Equipe e painel: o gestor cadastra o coordenador com uma senha inicial e repassa a ele (não há envio de e-mail). Só coordenadores são desativados; ao desativar quem responde por vagas em rascunho ou abertas, o gestor indica no mesmo pedido quem assume. No painel, vagas abertas e preenchidas não se repetem (abertas ainda têm lugar) e as pendentes contam só vagas abertas | Convite por e-mail; transferência vaga a vaga; desativar gestor | Sem serviço de e-mail no projeto. Transferir junto com a desativação garante que nenhuma vaga fique com responsável inativo. Desativar o único gestor travaria a organização | Definida |
 
 ## 3. Perguntas de descoberta do briefing
 
@@ -57,16 +60,16 @@ Cada trilha é revisada por outra pessoa do grupo antes de entrar na `develop`.
 |---|---|---|
 | Quais dados são necessários no perfil do voluntário? | Nome, e-mail, telefone, cidade, disponibilidade em texto e habilidades/interesses. Sem CPF, endereço ou foto | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
 | Quando a candidatura consome uma vaga? | Só quando é aceita. Candidatura pendente não ocupa vaga | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
-| Como tratar desistência de voluntário confirmado? | Ele pode cancelar. Se houver tempo para substituição, a vaga volta. Se for tarde, a participação fica como cancelada tardia e a vaga não volta | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
+| Como tratar desistência de voluntário confirmado? | Ele pode cancelar. Se houver tempo para substituição, a vaga volta. Se for tarde, a participação fica como cancelada tardia e a vaga não volta | Validada pelo PO |
 | Quais indicadores o coordenador precisa? | Oportunidades abertas, preenchidas e encerradas, mais candidaturas pendentes | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
 
 ## 4. Perguntas próprias da equipe
 
 | ID | Pergunta | Proposta | Status |
 |---|---|---|---|
-| Q-01 | Qual o prazo mínimo para a vaga ser devolvida? | Parâmetro do sistema, sugestão de 48 horas antes do início | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
-| Q-02 | Existe o conceito de organização? | Sim. Tabela `organizacao` (DER v2). A ONG se autocadastra e é a dona das vagas. Equipe com dois papéis: `GESTOR` (administrador da ONG) e `COORDENADOR`. Sem administrador da plataforma | Definida pela equipe |
-| Q-03 | Quem foi rejeitado ou cancelou pode se candidatar de novo? | Não. Uma candidatura por voluntário e oportunidade | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
+| Q-01 | Qual o prazo mínimo para a vaga ser devolvida? | Parâmetro do sistema, 48 horas antes do início | Validada pelo PO |
+| Q-02 | Existe o conceito de organização? | Sim. Tabela `organizacao` (DER v2). A ONG se autocadastra e é a dona das vagas. Equipe com dois papéis: `GESTOR` (administrador da ONG) e `COORDENADOR`. Sem administrador da plataforma | Validada pelo PO |
+| Q-03 | Quem foi rejeitado ou cancelou pode se candidatar de novo? | Não. Uma candidatura por voluntário e oportunidade | Validada pelo PO |
 | Q-04 | O voluntário pode retirar uma candidatura pendente? | Sim, com status cancelada | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
 | Q-05 | Quem encerra a oportunidade? | O coordenador, manualmente. Horas só podem ser registradas depois do fim da ação | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
 | Q-06 | Quem cria os coordenadores? | O gestor da ONG, que também cria as vagas e define o responsável por cada uma. O coordenador só mexe nas vagas pelas quais responde; o gestor pode operar qualquer vaga da ONG. O voluntário se cadastra sozinho | Definida pela equipe |
@@ -74,11 +77,9 @@ Cada trilha é revisada por outra pessoa do grupo antes de entrar na `develop`.
 | Q-08 | O que acontece com os confirmados se a oportunidade for cancelada? | Continuam no histórico e o cancelamento fica registrado | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
 | Q-09 | As horas registradas podem passar da duração planejada da ação? | Não. O limite é a duração (fim menos início) | Adotada pela equipe, implementada no schema. Aguarda validação do PO |
 | Q-10 | Existe vaga remota ou híbrida? | Não. Toda vaga é presencial, com local, cidade e UF obrigatórios | Definida pela equipe |
-| Q-11 | Como a vaga é classificada? | Por causa (Educação, Meio ambiente, Assistência social, Animais, Comunicação). Além da causa, a vaga lista as habilidades desejadas, do mesmo catálogo do perfil do voluntário (D-24) | Definida pela equipe |
+| Q-11 | Como a vaga é classificada? | Por causa (Educação, Meio ambiente, Assistência social, Animais, Comunicação). Além da causa, a vaga lista as habilidades desejadas, do mesmo catálogo do perfil do voluntário (D-24). As causas são fixas: o usuário não cadastra nem altera; mudança só pela equipe de desenvolvimento, quando solicitada | Validada pelo PO |
 | Q-12 | A vaga pode ser salva antes de publicar? | Sim, como rascunho, só com o título. Ao publicar, os demais campos passam a ser obrigatórios | Definida pela equipe |
 
 ## 5. Dúvidas para o professor
 
 - Confirmar as propostas marcadas como "Aguarda validação do PO" (seções 3 e 4).
-- Q-02 e Q-06: o briefing cita o ator "Administrador" (gerencia usuários e parâmetros). No DER v2 não há administrador da plataforma: o gestor da ONG cadastra os coordenadores e os parâmetros mudam só por migração. Confirmar que isso atende ao briefing.
-
