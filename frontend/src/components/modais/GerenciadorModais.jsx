@@ -7,7 +7,7 @@ import ConteudoInformativo from './ConteudoInformativo';
 import ConteudoOrganizacao from './ConteudoOrganizacao';
 
 /** Decide o conteúdo da janela aberta por useModal().abrir(tipo, dados). */
-export default function GerenciadorModais({ modal, abrir, fechar }) {
+export default function GerenciadorModais({ modal, fechar }) {
   const navegar = useNavigate();
 
   const buscar = (texto = '', local = '') => {
@@ -46,8 +46,10 @@ export default function GerenciadorModais({ modal, abrir, fechar }) {
         <Modal titulo={modal.titulo} aoFechar={fechar}>
           <ConteudoInformativo
             titulo={modal.titulo}
-            aoBuscar={buscar}
-            aoAbrirOrganizacao={(organizacao) => abrir('organizacao', { organizacao })}
+            aoNavegar={(caminho) => {
+              fechar();
+              navegar(caminho);
+            }}
           />
         </Modal>
       );

@@ -10,11 +10,21 @@ export default function ConteudoOrganizacao({ organizacao, aoBuscar }) {
   );
   return (
     <>
-      <p>Organização fictícia da demonstração do Voluntare.</p>
       {carregando ? (
         <Carregando />
       ) : (
-        dados.itens.map((oportunidade) => <p key={oportunidade.id}>{oportunidade.descricao}</p>)
+        <>
+          <p>
+            {dados.total === 1
+              ? '1 vaga aberta nesta organização:'
+              : `${dados.total} vagas abertas nesta organização:`}
+          </p>
+          <ul className="modal-lista">
+            {dados.itens.map((oportunidade) => (
+              <li key={oportunidade.id}>{oportunidade.titulo}</li>
+            ))}
+          </ul>
+        </>
       )}
       <button className="primary-button full-width" onClick={() => aoBuscar(organizacao.nome)}>
         Ver oportunidades da organização
