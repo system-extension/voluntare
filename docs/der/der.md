@@ -226,7 +226,7 @@ O banco não consegue garantir estas regras sozinho. Elas ficam no service, dent
 | Regra | Como é garantida |
 |---|---|
 | Coordenador só opera as vagas pelas quais responde; gestor opera qualquer vaga da sua organização | Antes de decidir candidatura, registrar presença ou editar a vaga, o service confere se o usuário é o `responsavel_id` ou um `GESTOR` com a mesma `organizacao_id` |
-| Só o gestor cria vagas, cadastra coordenadores e troca o responsável | O service confere o papel `GESTOR` e a organização |
+| Gestor e coordenador criam vagas; só o gestor cadastra coordenadores e troca o responsável (D-27) | O service confere o papel e a organização |
 | Responsável ativo | Ao definir o responsável, o service confere `usuario.ativo`. Ao desativar alguém, o gestor precisa antes passar as vagas abertas para outro |
 | Autocadastro da ONG | Organização e gestor criados na mesma transação |
 | Confirmados não passam de `vagas` | Ao aceitar, o service trava a linha da oportunidade (`SELECT ... FOR UPDATE`), conta as participações que ocupam vaga e só confirma se houver vaga |

@@ -75,8 +75,11 @@ public class GestaoOportunidadeService {
 
     public OportunidadeResponse criar(UUID autorId, OportunidadeRequest dados) {
         Usuario autor = equipe(autorId);
-        if (autor.getPapel() != Papel.GESTOR) {
-            throw new AcessoNegadoException("Só o gestor da organização pode criar vagas.");
+        // RN-16: gestor e coordenador criam vagas. O coordenador fica como responsável pela vaga que cria;
+        // escolher outra pessoa é só do gestor (RN-17).
+        if (autor.getPapel() != Papel.GESTOR && dados.responsavelId() != null
+                && !dados.responsavelId().equals(autor.getId())) {
+            throw new AcessoNegadoException("Só o gestor escolhe outro responsável pela vaga.");
         }
         Usuario responsavel = dados.responsavelId() == null ? autor : responsavelValido(autor, dados.responsavelId());
         StatusOportunidade status = dados.rascunho() ? StatusOportunidade.RASCUNHO : StatusOportunidade.ABERTA;

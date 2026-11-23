@@ -40,14 +40,14 @@ Toda regra nova ou alterada entra aqui antes (ou junto) do código. Se a regra v
 
 | ID | Regra | Origem | Onde | Situação |
 |---|---|---|---|---|
-| RN-16 | Só o gestor cria vagas. O responsável é um gestor ou coordenador ativo da mesma organização; se não for escolhido, é quem criou | Q-06 | banco + service | ✅ |
+| RN-16 | Gestor e coordenador criam vagas, como pede o briefing. O responsável é um gestor ou coordenador ativo da mesma organização; se não for escolhido, é quem criou. O coordenador fica sempre como responsável pela vaga que cria | Q-06, D-27 | banco + service | ✅ |
 | RN-17 | Só o gestor troca o responsável de uma vaga | Q-06 | service | ✅ |
 | RN-18 | Toda vaga é presencial: endereço, cidade e UF obrigatórios | Q-10 | banco + service | ✅ |
 | RN-19 | A vaga tem uma única causa entre as cinco fixas: Educação, Meio ambiente, Assistência social, Animais e Comunicação. O usuário não cadastra nem altera causas; incluir ou retirar uma é ajuste da equipe de desenvolvimento, quando solicitado. Vagas antigas continuam com a causa retirada | Q-11, D-18 | banco + front | ✅ |
 | RN-20 | A vaga pode ser salva como rascunho só com o título. Para ficar aberta precisa de descrição, causa, endereço, cidade, UF, início, fim e vagas | Q-12 | banco + service | ✅ |
 | RN-21 | A vaga acontece uma vez: um início e um fim, com o fim depois do início | Q-07 | banco + service | ✅ |
 | RN-22 | Ao abrir uma vaga, o início precisa estar no futuro. Na edição, só se o início for alterado | D-20 | service | ✅ |
-| RN-23 | Vagas: de 1 a 999 | — | banco | ✅ |
+| RN-23 | Vagas: de 1 a 20 por oportunidade. O banco aceita até 999 (CHECK), o limite de 20 é validado na API e na tela | D-27 | banco + service | ✅ |
 | RN-24 | Fluxo de status: rascunho → aberta ou cancelada; aberta → encerrada ou cancelada. Encerrada e cancelada são finais | — | service | ✅ |
 | RN-25 | Só rascunho e vaga aberta podem ser editados | — | service | ✅ |
 | RN-26 | O número de vagas não pode ficar abaixo dos voluntários já confirmados | — | service | ✅ |

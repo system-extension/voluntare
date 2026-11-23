@@ -130,14 +130,37 @@ class GestaoOportunidadeControllerTest {
     }
 
     @Test
-    void soOGestorCria() throws Exception {
+    void coordenadorCriaVagaEFicaComoResponsavel() throws Exception {
         como(BRUNO, post("/api/oportunidades").content(vagaCompleta("Vaga do coordenador", null)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("ABERTA"))
+                .andExpect(jsonPath("$.responsavel.nome").value("Bruno Costa"));
+        // Indicar a si mesmo como responsável também vale.
+        como(BRUNO, post("/api/oportunidades").content(vagaCompleta("Outra vaga do coordenador", usuario(2))))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.responsavel.nome").value("Bruno Costa"));
+    }
+
+    @Test
+    void coordenadorNaoEscolheOutroResponsavelAoCriar() throws Exception {
+        como(BRUNO, post("/api/oportunidades").content(vagaCompleta("Vaga para a Carla", usuario(3))))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void voluntarioESemLoginNaoCriamVaga() throws Exception {
         como(FERNANDA, post("/api/oportunidades").content(vagaCompleta("Vaga da voluntária", null)))
                 .andExpect(status().isForbidden());
         mvc.perform(post("/api/oportunidades").contentType(MediaType.APPLICATION_JSON)
                 .content(vagaCompleta("Sem login", null)))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void numeroDeVagasVaiDe1A20() throws Exception {
+        como(ANA, post("/api/oportunidades").content(vagaComQuantidade("Mutirão grande", 21)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.campos[0].campo").value("vagas"));
     }
 
     @Test
