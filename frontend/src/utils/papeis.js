@@ -16,5 +16,8 @@ export const ROTULO_PAPEL = {
 export const inicioDoPapel = (usuario) =>
   ehDaOrganizacao(usuario) ? '/organizacao' : '/oportunidades';
 
-/** Destino da marca e de "Página inicial": apresentação para visitante, início do papel para logado. */
-export const paginaInicial = (usuario) => (usuario ? inicioDoPapel(usuario) : '/');
+/**
+ * Destino da marca e de "Página inicial": a apresentação é só para visitante; quem está logado,
+ * em qualquer papel, cai na busca de vagas (a área da ONG tem o seu próprio item no menu).
+ */
+export const paginaInicial = (usuario) => (usuario ? '/oportunidades' : '/');

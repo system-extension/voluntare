@@ -29,10 +29,7 @@ export default function Cabecalho() {
   // Gestor/coordenador vai para a sua área; os demais conhecem a proposta antes de cadastrar.
   const areaDaOng = ehDaOrganizacao(usuario) ? '/organizacao' : '/para-organizacoes';
   const inicio = paginaInicial(usuario);
-  // Para a ONG, "Página inicial" é a área dela; para os demais, a apresentação e a busca de vagas.
-  const paginaInicialAtiva = ehDaOrganizacao(usuario)
-    ? pathname === inicio
-    : pathname === '/' || pathname.startsWith('/oportunidades');
+  const paginaInicialAtiva = pathname === '/' || pathname.startsWith('/oportunidades');
 
   return (
     <>

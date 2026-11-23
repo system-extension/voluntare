@@ -21,17 +21,17 @@ import CadastroOrganizacao from './pages/entrar/CadastroOrganizacao';
 import ParaOrganizacoes from './pages/para-organizacoes/ParaOrganizacoes';
 import NaoEncontrada from './pages/NaoEncontrada';
 import useConta from './hooks/useConta';
-import { PAPEIS_ORGANIZACAO, inicioDoPapel } from './utils/papeis';
+import { PAPEIS_ORGANIZACAO, paginaInicial } from './utils/papeis';
 
 /**
  * Rotas.
  * basename: no GitHub Pages o site fica em /voluntare/ (VITE_BASE no build).
  * Públicas: início, busca e entrar. Voluntário: /conta. Gestor e coordenador: /organizacao.
  */
-/** "/" mostra a apresentação só para visitante; logado vai direto para o início do seu papel. */
+/** "/" mostra a apresentação só para visitante; logado vai direto para a busca de vagas. */
 function InicioOuVagas() {
   const { usuario } = useConta();
-  return usuario ? <Navigate to={inicioDoPapel(usuario)} replace /> : <Inicio />;
+  return usuario ? <Navigate to={paginaInicial(usuario)} replace /> : <Inicio />;
 }
 
 export default function App() {
@@ -53,12 +53,12 @@ export default function App() {
 
                 <Route element={<RotaProtegida papeis={PAPEIS_ORGANIZACAO} />}>
                   <Route path="organizacao" element={<AreaOrganizacao />} />
+                  <Route path="organizacao/nova" element={<FormularioOportunidade />} />
                   <Route path="organizacao/:id/editar" element={<FormularioOportunidade />} />
                   <Route path="organizacao/:id/candidatos" element={<Candidatos />} />
                 </Route>
 
                 <Route element={<RotaProtegida papeis={['GESTOR']} />}>
-                  <Route path="organizacao/nova" element={<FormularioOportunidade />} />
                   <Route path="organizacao/equipe" element={<Equipe />} />
                 </Route>
 

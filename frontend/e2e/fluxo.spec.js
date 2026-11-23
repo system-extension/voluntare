@@ -45,8 +45,12 @@ test('gestora publica uma vaga com habilidade e responsável', async ({ page }) 
   await page.getByRole('button', { name: 'Anunciar uma vaga' }).click();
   await page.getByLabel('Título da vaga').fill(TITULO);
   await page.getByLabel('Número de vagas').fill('1');
-  await page.getByLabel('Endereço').fill('Rua XV de Novembro, 1200');
+  // Estado primeiro: a cidade só lista as cidades da UF escolhida
+  await page.getByLabel('Estado').click();
+  await page.getByRole('option', { name: 'SC', exact: true }).click();
   await page.getByLabel('Cidade').fill('Joinville');
+  await page.getByRole('option', { name: 'Joinville', exact: true }).click();
+  await page.getByLabel('Endereço').fill('Rua XV de Novembro, 1200');
   await page.getByLabel('Data da ação').fill(daquiA(3));
   await page.getByLabel('Início').fill('09:00');
   await page.getByLabel('Término').fill('12:00');
@@ -54,9 +58,8 @@ test('gestora publica uma vaga com habilidade e responsável', async ({ page }) 
     .getByLabel('Descrição da oportunidade')
     .fill('Leitura em voz alta com crianças do bairro, com rodas de conversa no final.');
   await page.locator('.ong-habilidades button').first().click();
-  await page
-    .getByLabel('Responsável pela vaga')
-    .selectOption({ label: 'Bruno Costa (coordenador)' });
+  await page.getByLabel('Responsável pela vaga').click();
+  await page.getByRole('option', { name: 'Bruno Costa (coordenador)' }).click();
   await page.getByRole('button', { name: 'Publicar vaga' }).click();
 
   await expect(page.getByText('Vaga publicada na busca.')).toBeVisible();
@@ -138,15 +141,15 @@ test('gestora cadastra e desativa um coordenador', async ({ page }) => {
   await entrar(page, ANA);
   await page.getByRole('button', { name: 'Equipe', exact: true }).click();
 
-  await page.getByLabel('Nome').fill('Paulo Teste');
+  await page.getByLabel('Nome completo').fill('Paulo Teste');
   await page.getByLabel('E-mail').fill(email);
-  await page.getByLabel('Senha inicial (8 a 72 caracteres)').fill('inicial123');
+  await page.getByLabel('Senha inicial', { exact: true }).fill('inicial123');
   await page.getByRole('button', { name: 'Cadastrar coordenador' }).click();
-  await expect(page.getByText('Paulo Teste cadastrado.')).toBeVisible();
+  await expect(page.getByText('Paulo Teste foi cadastrado.')).toBeVisible();
 
-  const paulo = page.locator('.ong-job-row', { hasText: email });
+  const paulo = page.locator('.equipe-membro', { hasText: email });
   await paulo.getByRole('button', { name: 'Desativar' }).click();
-  await paulo.getByRole('button', { name: 'Confirmar desativação' }).click();
-  await expect(page.getByText('Paulo Teste desativado.')).toBeVisible();
+  await page.getByRole('dialog').getByRole('button', { name: 'Confirmar desativação' }).click();
+  await expect(page.getByText('Paulo Teste foi desativado')).toBeVisible();
   await expect(paulo).toContainText('Desativado');
 });
