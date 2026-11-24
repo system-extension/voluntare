@@ -22,7 +22,9 @@ spring:
         default_batch_fetch_size: 50
 
   flyway:
-    locations: classpath:db/migration
+    # db/demo: dados extras só para usar o sistema (mais vagas e descrições completas).
+    # Os testes carregam só db/migration (ver TestcontainersConfiguration).
+    locations: classpath:db/migration,classpath:db/demo
 
 # Token de login (JWT). Em qualquer ambiente fora da máquina local, defina JWT_SEGREDO
 # com no mínimo 32 caracteres aleatórios. O padrão abaixo serve só para desenvolvimento.

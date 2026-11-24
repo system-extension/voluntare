@@ -194,7 +194,7 @@ Todas as rotas estão documentadas no Swagger. Resumo:
 | Autenticação | `POST /api/auth/verificar-email`, `POST /api/auth/cadastro`, `POST /api/auth/cadastro-organizacao`, `POST /api/auth/login`, `GET /api/auth/eu` | Público / logado |
 | Perfil do voluntário | `GET` e `PUT /api/voluntarios/eu` | Voluntário |
 | Área da organização | `GET /api/organizacao`, `GET /api/organizacao/oportunidades` (+ `/{id}`, `/{id}/historico`, `/{id}/candidaturas`) | Gestor ou coordenador |
-| Vagas | `POST /api/oportunidades`, `PUT /api/oportunidades/{id}`, `POST /api/oportunidades/{id}/publicar`, `/encerrar`, `/cancelar` | Gestor cria; responsável ou gestor alteram |
+| Vagas | `POST /api/oportunidades`, `PUT /api/oportunidades/{id}`, `POST /api/oportunidades/{id}/publicar`, `/encerrar`, `/cancelar` | Gestor ou coordenador cria; responsável ou gestor alteram |
 | Candidatura | `POST /api/oportunidades/{id}/candidaturas`, `GET /api/candidaturas/minhas`, `POST /api/candidaturas/{id}/cancelar` | Voluntário |
 | Decisão | `POST /api/candidaturas/{id}/aceitar`, `/rejeitar` | Responsável ou gestor |
 | Equipe | `GET` e `POST /api/organizacao/equipe`, `POST /api/organizacao/equipe/{id}/desativar` | Gestor |

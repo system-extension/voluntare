@@ -39,8 +39,8 @@ public record OportunidadeRequest(
         String uf,
         Instant inicio,
         Instant fim,
-        @Min(value = 1, message = "Informe de 1 a 999 vagas.")
-        @Max(value = 999, message = "Informe de 1 a 999 vagas.")
+        @Min(value = 1, message = "Informe de 1 a 20 vagas.")
+        @Max(value = 20, message = "Informe de 1 a 20 vagas.")
         Integer vagas,
         UUID responsavelId,
         @Size(max = 10, message = "Escolha até 10 habilidades.")

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { ArrowLeft, Check, MapPin, Search } from 'lucide-react';
+import { ArrowLeft, Building2, Check, MapPin, Search } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
   buscarParaGestao,
@@ -9,14 +9,26 @@ import {
 import { buscarMinhaOrganizacao, listarEquipe } from '../../api/organizacoes';
 import { listarHabilidades } from '../../api/voluntarios';
 import { CAUSAS, UFS, rotulo } from '../../api/rotulos';
+import CampoCidade from '../../components/ui/CampoCidade';
 import Carregando from '../../components/ui/Carregando';
 import ErroCarregamento from '../../components/ui/ErroCarregamento';
+import Seletor from '../../components/ui/Seletor';
+import { cidadeOficial, useMunicipios } from '../../dados/municipios';
 import useCarregar from '../../hooks/useCarregar';
 import useConta from '../../hooks/useConta';
 import useTitulo from '../../hooks/useTitulo';
 import { formatarPeriodo, juntarDataHora, separarDataHora } from '../../utils/datas';
-import { FORMULARIO_VAZIO, validarOportunidade, validarRascunho } from './validacao';
+import {
+  FORMULARIO_VAZIO,
+  MAX_VAGAS,
+  agoraLocal,
+  erroDoPeriodo,
+  validarOportunidade,
+  validarRascunho,
+} from './validacao';
 import './organizacao.css';
+
+const OPCOES_UF = UFS.map((uf) => ({ valor: uf }));
 
 /** Converte a oportunidade da API nos campos do formulário (data e horários separados). */
 function paraFormulario(oportunidade) {
@@ -30,7 +42,7 @@ function paraFormulario(oportunidade) {
     vagas: oportunidade.vagas != null ? String(oportunidade.vagas) : FORMULARIO_VAZIO.vagas,
     local: oportunidade.local ?? '',
     cidade: oportunidade.cidade ?? '',
-    uf: oportunidade.uf ?? FORMULARIO_VAZIO.uf,
+    uf: oportunidade.uf ?? '',
     data: inicio.data,
     horaInicio: inicio.hora,
     horaFim: fim.hora,
@@ -42,7 +54,7 @@ function paraFormulario(oportunidade) {
   };
 }
 
-/** Rota /organizacao/nova e /organizacao/:id/editar. */
+/** Rota /organizacao/nova e /organizacao/:id/editar (gestor e coordenador). */
 export default function FormularioOportunidade() {
   const { id } = useParams();
   useTitulo(id ? 'Editar vaga' : 'Anunciar uma vaga');
@@ -55,11 +67,17 @@ export default function FormularioOportunidade() {
   const existente = useCarregar(() => (id ? buscarParaGestao(id) : Promise.resolve(null)), [id]);
 
   if (existente.erro) return <ErroCarregamento erro={existente.erro} />;
-  if (!organizacao.dados || existente.carregando) return <Carregando />;
+  if (!organizacao.dados || existente.carregando || (gestor && equipe.carregando))
+    return <Carregando />;
   if (existente.dados && !['RASCUNHO', 'ABERTA'].includes(existente.dados.status))
     return (
       <ErroCarregamento erro={{ message: 'Só rascunhos e vagas abertas podem ser editados.' }} />
     );
+
+  // nova vaga: o gestor começa como responsável e pode trocar; o coordenador é sempre o responsável
+  const inicial = existente.dados
+    ? paraFormulario(existente.dados)
+    : { ...FORMULARIO_VAZIO, responsavelId: gestor ? usuario.id : '' };
 
   return (
     <Editor
@@ -69,17 +87,11 @@ export default function FormularioOportunidade() {
       organizacao={organizacao.dados}
       catalogo={catalogo.dados ?? []}
       equipe={(equipe.dados ?? []).filter((m) => m.ativo)}
+      usuario={usuario}
       gestor={gestor}
-      inicial={existente.dados ? paraFormulario(existente.dados) : FORMULARIO_VAZIO}
+      inicial={inicial}
     />
   );
-}
-
-/** Mesma regra do backend (pendenciasDoPeriodo): a ação acontece num dia só, término depois do início. */
-function erroDoPeriodo(horaInicio, horaFim) {
-  if (horaInicio && horaFim && horaFim <= horaInicio)
-    return 'O término precisa ser depois do início.';
-  return undefined;
 }
 
 /** "Duração: 2h30" quando o período é válido; ajuda a perceber um horário digitado errado. */
@@ -92,8 +104,20 @@ function duracao(horaInicio, horaFim) {
   return `Duração: ${h ? `${h}h` : ''}${m ? String(m).padStart(h ? 2 : 1, '0') + (h ? '' : ' min') : ''}`;
 }
 
-function Editor({ id, status, organizacao, catalogo, equipe, gestor, inicial }) {
+/** Opções do responsável: a própria pessoa aparece uma vez só, como "Você". */
+function opcoesDeResponsavel(equipe, usuario) {
+  const papel = (m) => (m.papel === 'GESTOR' ? 'gestor' : 'coordenador');
+  const eu = equipe.find((m) => m.id === usuario.id);
+  const outros = equipe.filter((m) => m.id !== usuario.id);
+  return [
+    ...(eu ? [{ valor: eu.id, rotulo: `Você (${eu.nome})` }] : []),
+    ...outros.map((m) => ({ valor: m.id, rotulo: `${m.nome} (${papel(m)})` })),
+  ];
+}
+
+function Editor({ id, status, organizacao, catalogo, equipe, usuario, gestor, inicial }) {
   const navegar = useNavigate();
+  const municipios = useMunicipios();
   const [form, setForm] = useState(inicial);
   const [erros, setErros] = useState({});
   const [erroEnvio, setErroEnvio] = useState('');
@@ -102,21 +126,25 @@ function Editor({ id, status, organizacao, catalogo, equipe, gestor, inicial }) 
 
   const voltar = () => navegar('/organizacao');
   const aberta = status === 'ABERTA';
+  const hoje = agoraLocal().data;
 
-  function atualizar(e) {
-    const { name, value } = e.target;
+  /** Muda um campo. Horário é conferido na hora; trocar o estado limpa a cidade de outro estado. */
+  function definir(name, value) {
     const novo = { ...form, [name]: value };
+    if (name === 'uf' && novo.cidade && !cidadeOficial(municipios, value, novo.cidade)) {
+      novo.cidade = '';
+    }
     setForm(novo);
     setErros((atual) => {
       const erros = { ...atual, [name]: undefined };
-      // O horário é conferido na hora, não só ao publicar: com os dois preenchidos,
-      // um término antes do início já aparece em vermelho enquanto a pessoa escolhe.
+      if (name === 'uf') erros.cidade = undefined;
       if (name === 'horaInicio' || name === 'horaFim') {
         erros.horaFim = erroDoPeriodo(novo.horaInicio, novo.horaFim);
       }
       return erros;
     });
   }
+  const atualizar = (e) => definir(e.target.name, e.target.value);
 
   function focarPrimeiroErro() {
     requestAnimationFrame(() => formRef.current?.querySelector('[aria-invalid="true"]')?.focus());
@@ -125,7 +153,10 @@ function Editor({ id, status, organizacao, catalogo, equipe, gestor, inicial }) 
   // rascunho: só o título é obrigatório (RN-20); publicar exige o anúncio completo
   async function enviar(e, comoRascunho = false) {
     e.preventDefault();
-    const novosErros = comoRascunho ? validarRascunho(form) : validarOportunidade(form);
+    const contexto = { municipios };
+    const novosErros = comoRascunho
+      ? validarRascunho(form, contexto)
+      : validarOportunidade(form, contexto);
     setErros(novosErros);
     if (Object.keys(novosErros).length) return focarPrimeiroErro();
 
@@ -137,7 +168,7 @@ function Editor({ id, status, organizacao, catalogo, equipe, gestor, inicial }) 
       causa: form.causa || null,
       vagas: form.vagas ? Number(form.vagas) : null,
       local: texto(form.local),
-      cidade: texto(form.cidade),
+      cidade: texto(cidadeOficial(municipios, form.uf, form.cidade) ?? form.cidade),
       uf: form.uf || null,
       inicio: periodo ? juntarDataHora(form.data, form.horaInicio) : null,
       fim: periodo ? juntarDataHora(form.data, form.horaFim) : null,
@@ -146,6 +177,7 @@ function Editor({ id, status, organizacao, catalogo, equipe, gestor, inicial }) 
       requisitos: texto(form.requisitos),
       // na edição a lista substitui a atual: sempre mandar, senão as habilidades somem
       habilidadeIds: form.habilidadeIds,
+      // o coordenador não manda: o backend o coloca como responsável (RN-16 e RN-17)
       responsavelId: gestor && form.responsavelId ? form.responsavelId : null,
       rascunho: comoRascunho,
     };
@@ -188,45 +220,20 @@ function Editor({ id, status, organizacao, catalogo, equipe, gestor, inicial }) 
       };
     });
 
-  function campo(
-    name,
-    label,
-    { type = 'text', placeholder, maxLength = 120, options, dica, extra = {} } = {},
-  ) {
+  /** Rótulo, erro e dica de um campo; `controle` recebe os atributos de acessibilidade. */
+  function envoltorio(name, label, controle, dica) {
     const descricao = [erros[name] && `erro-${name}`, dica && !erros[name] && `dica-${name}`]
       .filter(Boolean)
       .join(' ');
     const attrs = {
       id: `ong-${name}`,
-      name,
-      value: form[name],
-      onChange: atualizar,
       'aria-invalid': !!erros[name],
       'aria-describedby': descricao || undefined,
-      ...extra,
     };
     return (
       <div className="ong-field">
         <label htmlFor={attrs.id}>{label}</label>
-        {options ? (
-          <select {...attrs}>
-            {options.map((opcao) => (
-              <option key={opcao.valor} value={opcao.valor}>
-                {opcao.rotulo}
-              </option>
-            ))}
-          </select>
-        ) : type === 'textarea' ? (
-          <textarea {...attrs} rows={5} maxLength={maxLength} placeholder={placeholder} />
-        ) : (
-          <input
-            {...attrs}
-            type={type}
-            maxLength={type === 'text' ? maxLength : undefined}
-            placeholder={placeholder}
-            {...(type === 'number' ? { min: 1, max: 999, step: 1 } : {})}
-          />
-        )}
+        {controle(attrs)}
         {dica && !erros[name] && (
           <span className="ong-field-hint" id={`dica-${name}`}>
             {dica}
@@ -241,7 +248,57 @@ function Editor({ id, status, organizacao, catalogo, equipe, gestor, inicial }) 
     );
   }
 
-  const ufs = UFS.map((uf) => ({ valor: uf, rotulo: uf }));
+  function campo(
+    name,
+    label,
+    { type = 'text', placeholder, maxLength = 120, dica, extra = {} } = {},
+  ) {
+    return envoltorio(
+      name,
+      label,
+      (attrs) =>
+        type === 'textarea' ? (
+          <textarea
+            {...attrs}
+            name={name}
+            value={form[name]}
+            onChange={atualizar}
+            rows={5}
+            maxLength={maxLength}
+            placeholder={placeholder}
+          />
+        ) : (
+          <input
+            {...attrs}
+            name={name}
+            value={form[name]}
+            onChange={atualizar}
+            type={type}
+            maxLength={type === 'text' ? maxLength : undefined}
+            placeholder={placeholder}
+            {...extra}
+          />
+        ),
+      dica,
+    );
+  }
+
+  const seletor = (name, label, opcoes, textoVazio, dica) =>
+    envoltorio(
+      name,
+      label,
+      (attrs) => (
+        <Seletor
+          {...attrs}
+          opcoes={opcoes}
+          valor={form[name]}
+          textoVazio={textoVazio}
+          aoMudar={(v) => definir(name, v)}
+        />
+      ),
+      dica,
+    );
+
   const periodo =
     form.data && form.horaInicio && form.horaFim && form.horaFim > form.horaInicio
       ? formatarPeriodo(
@@ -249,6 +306,7 @@ function Editor({ id, status, organizacao, catalogo, equipe, gestor, inicial }) 
           juntarDataHora(form.data, form.horaFim),
         )
       : 'Data e horário';
+  const temDetalhes = Boolean(inicial.atividades || inicial.requisitos);
 
   return (
     <section className="ong-page ong-editor">
@@ -273,12 +331,13 @@ function Editor({ id, status, organizacao, catalogo, equipe, gestor, inicial }) 
             <h2>
               <span>1</span> Sobre a organização
             </h2>
-            <div className="ong-field">
-              <label htmlFor="ong-organizacao">Organização</label>
-              <input id="ong-organizacao" value={organizacao.nome} readOnly />
-              <span className="ong-form-footnote">
-                As vagas são publicadas em nome da sua organização.
-              </span>
+            {/* Não é um campo: a vaga sempre sai em nome da organização de quem está logado. */}
+            <div className="ong-org-fixa">
+              <Building2 size={20} aria-hidden="true" />
+              <div>
+                <strong>{organizacao.nome}</strong>
+                <span>As vagas são publicadas em nome da sua organização.</span>
+              </div>
             </div>
           </section>
 
@@ -288,26 +347,44 @@ function Editor({ id, status, organizacao, catalogo, equipe, gestor, inicial }) 
             </h2>
             {campo('titulo', 'Título da vaga', {
               placeholder: 'Ex.: Voluntário para reforço escolar',
+              maxLength: 150,
             })}
             <div className="ong-field-grid">
-              {campo('causa', 'Causa', { options: CAUSAS })}
-              {campo('vagas', 'Número de vagas', { type: 'number' })}
+              {seletor('causa', 'Causa', CAUSAS, 'Escolha a causa')}
+              {campo('vagas', 'Número de vagas', {
+                type: 'number',
+                dica: `De 1 a ${MAX_VAGAS} voluntários.`,
+                extra: { min: 1, max: MAX_VAGAS, step: 1, inputMode: 'numeric' },
+              })}
             </div>
           </section>
 
           <section className="ong-form-section">
             <h2>
-              <span>3</span> Local, data e horário
+              <span>3</span> Onde e quando
             </h2>
+            <div className="ong-field-grid ong-grid-uf">
+              {seletor('uf', 'Estado', OPCOES_UF, 'UF')}
+              {envoltorio(
+                'cidade',
+                'Cidade',
+                (attrs) => (
+                  <CampoCidade
+                    {...attrs}
+                    municipios={municipios}
+                    uf={form.uf}
+                    valor={form.cidade}
+                    aoMudar={(v) => definir('cidade', v)}
+                  />
+                ),
+                form.uf ? undefined : 'A lista de cidades aparece depois de escolher o estado.',
+              )}
+            </div>
             {campo('local', 'Endereço', {
               placeholder: 'Ex.: Rua das Palmeiras, 120 – Centro',
               maxLength: 200,
             })}
-            <div className="ong-field-grid">
-              {campo('cidade', 'Cidade', { placeholder: 'Ex.: Joinville', maxLength: 100 })}
-              {campo('uf', 'Estado', { options: ufs })}
-            </div>
-            {campo('data', 'Data da ação', { type: 'date' })}
+            {campo('data', 'Data da ação', { type: 'date', extra: { min: hoje } })}
             <div className="ong-field-grid">
               {campo('horaInicio', 'Início', { type: 'time' })}
               {campo('horaFim', 'Término', {
@@ -321,28 +398,34 @@ function Editor({ id, status, organizacao, catalogo, equipe, gestor, inicial }) 
 
           <section className="ong-form-section">
             <h2>
-              <span>4</span> Atividades e expectativas
+              <span>4</span> Sobre a atividade
             </h2>
             {campo('descricao', 'Descrição da oportunidade', {
               type: 'textarea',
               maxLength: 5000,
               placeholder:
-                'Apresente o projeto, as atividades e o que espera dos voluntários. Mínimo de 40 caracteres.',
+                'Conte o que é a ação, o que os voluntários vão fazer e por que ela importa. Mínimo de 40 caracteres.',
+              dica: `${form.descricao.trim().length} caracteres (mínimo de 40).`,
             })}
-            {campo('atividades', 'O que os voluntários vão fazer (opcional)', {
-              type: 'textarea',
-              maxLength: 2000,
-            })}
-            {campo('requisitos', 'Requisitos (opcional)', {
-              type: 'textarea',
-              maxLength: 2000,
-              placeholder: 'Ex.: pontualidade, gostar de crianças',
-            })}
+            {/* Atividades e requisitos são colunas opcionais da oportunidade (DER): ficam recolhidas. */}
+            <details className="ong-detalhes" open={temDetalhes}>
+              <summary>Detalhar atividades e requisitos (opcional)</summary>
+              {campo('atividades', 'O que os voluntários vão fazer', {
+                type: 'textarea',
+                maxLength: 5000,
+                placeholder: 'Ex.: leitura com as crianças, organização da sala, lanche no fim',
+              })}
+              {campo('requisitos', 'Requisitos', {
+                type: 'textarea',
+                maxLength: 5000,
+                placeholder: 'Ex.: maior de 16 anos, pontualidade, gostar de crianças',
+              })}
+            </details>
           </section>
 
           <section className="ong-form-section">
             <h2>
-              <span>5</span> Habilidades desejadas e responsável
+              <span>5</span> Habilidades e responsável
             </h2>
             <fieldset className="ong-habilidades">
               <legend>Habilidades desejadas (até 10, opcional)</legend>
@@ -367,19 +450,18 @@ function Editor({ id, status, organizacao, catalogo, equipe, gestor, inicial }) 
               )}
             </fieldset>
             {gestor ? (
-              campo('responsavelId', 'Responsável pela vaga', {
-                options: [
-                  { valor: '', rotulo: id ? 'Manter o atual' : 'Eu mesmo' },
-                  ...equipe.map((m) => ({
-                    valor: m.id,
-                    rotulo: `${m.nome} (${m.papel === 'GESTOR' ? 'gestor' : 'coordenador'})`,
-                  })),
-                ],
-                dica: 'Quem aceita os candidatos e registra a presença. O gestor pode agir em qualquer vaga.',
-              })
+              seletor(
+                'responsavelId',
+                'Responsável pela vaga',
+                opcoesDeResponsavel(equipe, usuario),
+                'Escolha quem responde pela vaga',
+                'Quem aceita os candidatos e registra a presença. O gestor pode agir em qualquer vaga.',
+              )
             ) : (
               <p className="ong-form-footnote">
-                O responsável pela vaga é definido pelo gestor da organização.
+                {id
+                  ? 'O responsável pela vaga é definido pelo gestor da organização.'
+                  : 'Você será o responsável por esta vaga: aceita os candidatos e registra a presença.'}
               </p>
             )}
           </section>
@@ -423,11 +505,15 @@ function Editor({ id, status, organizacao, catalogo, equipe, gestor, inicial }) 
             <p>{organizacao.nome}</p>
             <p className="inline-icon">
               <MapPin size={16} />
-              {form.cidade ? `${form.cidade}, ${form.uf}` : 'Cidade, estado'}
+              {form.cidade && form.uf ? `${form.cidade}, ${form.uf}` : 'Cidade, estado'}
             </p>
             <div className="tags">
               <span>{periodo}</span>
-              <span>{form.vagas ? `${form.vagas} vaga(s)` : 'Vagas'}</span>
+              <span>
+                {form.vagas
+                  ? `${form.vagas} ${Number(form.vagas) === 1 ? 'vaga' : 'vagas'}`
+                  : 'Vagas'}
+              </span>
             </div>
             <p className="ong-preview-description">
               {form.descricao ||

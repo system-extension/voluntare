@@ -20,13 +20,20 @@ import Entrar from './pages/entrar/Entrar';
 import CadastroOrganizacao from './pages/entrar/CadastroOrganizacao';
 import ParaOrganizacoes from './pages/para-organizacoes/ParaOrganizacoes';
 import NaoEncontrada from './pages/NaoEncontrada';
-import { PAPEIS_ORGANIZACAO } from './utils/papeis';
+import useConta from './hooks/useConta';
+import { PAPEIS_ORGANIZACAO, paginaInicial } from './utils/papeis';
 
 /**
  * Rotas.
  * basename: no GitHub Pages o site fica em /voluntare/ (VITE_BASE no build).
  * Públicas: início, busca e entrar. Voluntário: /conta. Gestor e coordenador: /organizacao.
  */
+/** "/" mostra a apresentação só para visitante; logado vai direto para a busca de vagas. */
+function InicioOuVagas() {
+  const { usuario } = useConta();
+  return usuario ? <Navigate to={paginaInicial(usuario)} replace /> : <Inicio />;
+}
+
 export default function App() {
   return (
     <BrowserRouter basename={import.meta.env.BASE_URL}>
@@ -40,18 +47,18 @@ export default function App() {
               </Route>
 
               <Route element={<LayoutPrincipal />}>
-                <Route index element={<Inicio />} />
+                <Route index element={<InicioOuVagas />} />
                 <Route path="oportunidades" element={<Oportunidades />} />
                 <Route path="para-organizacoes" element={<ParaOrganizacoes />} />
 
                 <Route element={<RotaProtegida papeis={PAPEIS_ORGANIZACAO} />}>
                   <Route path="organizacao" element={<AreaOrganizacao />} />
+                  <Route path="organizacao/nova" element={<FormularioOportunidade />} />
                   <Route path="organizacao/:id/editar" element={<FormularioOportunidade />} />
                   <Route path="organizacao/:id/candidatos" element={<Candidatos />} />
                 </Route>
 
                 <Route element={<RotaProtegida papeis={['GESTOR']} />}>
-                  <Route path="organizacao/nova" element={<FormularioOportunidade />} />
                   <Route path="organizacao/equipe" element={<Equipe />} />
                 </Route>
 

@@ -9,5 +9,15 @@ export const ROTULO_PAPEL = {
   COORDENADOR: 'Coordenador',
 };
 
-/** Tela inicial de cada papel: a ONG vai para a sua área; o voluntário, para as vagas. */
-export const inicioDoPapel = (usuario) => (ehDaOrganizacao(usuario) ? '/organizacao' : '/');
+/**
+ * Tela inicial de cada papel: a ONG vai para a sua área; o voluntário, para as vagas.
+ * A página de apresentação (/) é só para quem não entrou.
+ */
+export const inicioDoPapel = (usuario) =>
+  ehDaOrganizacao(usuario) ? '/organizacao' : '/oportunidades';
+
+/**
+ * Destino da marca e de "Página inicial": a apresentação é só para visitante; quem está logado,
+ * em qualquer papel, cai na busca de vagas (a área da ONG tem o seu próprio item no menu).
+ */
+export const paginaInicial = (usuario) => (usuario ? '/oportunidades' : '/');

@@ -2,8 +2,7 @@ import { useState } from 'react';
 import { Bell, Bookmark, Building2, Menu, MessageSquare, UserRound, X } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import useConta from '../../hooks/useConta';
-import useModal from '../../hooks/useModal';
-import { ROTULO_PAPEL, ehDaOrganizacao } from '../../utils/papeis';
+import { ROTULO_PAPEL, ehDaOrganizacao, paginaInicial } from '../../utils/papeis';
 import Logo from '../ui/Logo';
 
 export default function Cabecalho() {
@@ -11,10 +10,8 @@ export default function Cabecalho() {
   const location = useLocation();
   const { pathname } = location;
   const navegar = useNavigate();
-  const { abrir } = useModal();
   const { usuario, sair } = useConta();
 
-  const paginaInicialAtiva = pathname === '/' || pathname.startsWith('/oportunidades');
   const irPara = (caminho) => {
     setMenuAberto(false);
     navegar(caminho);
@@ -31,22 +28,19 @@ export default function Cabecalho() {
   };
   // Gestor/coordenador vai para a sua área; os demais conhecem a proposta antes de cadastrar.
   const areaDaOng = ehDaOrganizacao(usuario) ? '/organizacao' : '/para-organizacoes';
-  const info = (titulo) => {
-    setMenuAberto(false);
-    abrir('info', { titulo });
-  };
+  const inicio = paginaInicial(usuario);
+  const paginaInicialAtiva = pathname === '/' || pathname.startsWith('/oportunidades');
 
   return (
     <>
       <header className="site-header">
-        <Link className="brand-link" to="/" aria-label="Voluntare, página inicial">
+        <Link className="brand-link" to={inicio} aria-label="Voluntare, página inicial">
           <Logo />
         </Link>
         <nav className="primary-nav" aria-label="Navegação principal">
-          <Link to="/" className={paginaInicialAtiva ? 'active' : ''}>
+          <Link to={inicio} className={paginaInicialAtiva ? 'active' : ''}>
             Página inicial
           </Link>
-          <button onClick={() => info('Conheça as organizações')}>Avaliações de ONGs</button>
           <button onClick={() => irPara('/oportunidades')}>Causas e oportunidades</button>
         </nav>
         <nav className="account-nav" aria-label="Sua conta">
@@ -58,14 +52,9 @@ export default function Cabecalho() {
               aoSair={encerrarSessao}
             />
           ) : (
-            <>
-              <button className="sign-in" onClick={irParaLogin}>
-                Acessar
-              </button>
-              <button className="country" onClick={() => info('País e idioma')}>
-                <span>BR</span> País e idioma
-              </button>
-            </>
+            <button className="sign-in" onClick={irParaLogin}>
+              Acessar
+            </button>
           )}
           <button className="employers" onClick={() => irPara(areaDaOng)}>
             ONGs/Anunciar vagas
@@ -82,8 +71,7 @@ export default function Cabecalho() {
       </header>
       {menuAberto && (
         <nav className="mobile-menu" aria-label="Menu móvel">
-          <button onClick={() => irPara('/')}>Página inicial</button>
-          <button onClick={() => info('Conheça as organizações')}>Avaliações de ONGs</button>
+          <button onClick={() => irPara(inicio)}>Página inicial</button>
           <button onClick={() => irPara('/oportunidades')}>Causas e oportunidades</button>
           <button onClick={() => irPara(areaDaOng)}>ONGs/Anunciar vagas</button>
           {usuario ? (

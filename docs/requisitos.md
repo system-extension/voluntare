@@ -11,8 +11,8 @@ ONGs que trabalham com voluntários costumam controlar vagas, inscrições e pre
 | Ator | O que faz |
 |---|---|
 | Voluntário | Mantém o perfil (contato, disponibilidade, habilidades e interesses), busca vagas, se candidata, desiste e acompanha o histórico de horas |
-| Coordenador | Pessoa da ONG responsável por vagas: aceita ou rejeita candidaturas e registra presença e horas das vagas dele |
-| Gestor | Dono da conta da ONG: cria e publica vagas, escolhe o responsável de cada uma, gerencia a equipe e vê o painel da organização inteira |
+| Coordenador | Pessoa da ONG responsável por vagas: cria vagas (e fica como responsável por elas), aceita ou rejeita candidaturas e registra presença e horas das vagas dele |
+| Gestor | Dono da conta da ONG: cria e publica vagas, escolhe ou troca o responsável de cada uma, gerencia a equipe e vê o painel da organização inteira |
 
 Não existe administrador da plataforma: o gestor cobre a gestão de usuários da ONG e os parâmetros mudam por migração (RN-01, validado com o PO).
 

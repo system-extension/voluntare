@@ -65,3 +65,45 @@
   font-weight: 700;
   color: var(--primary);
 }
+
+/* Cidade com busca (CampoCidade.jsx): mesmo visual do botão do seletor. */
+.campo-cidade {
+  position: relative;
+}
+.campo-cidade input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 40px 10px 14px;
+  border: 1px solid #949494;
+  border-radius: 10px;
+  background: #fff;
+  font: inherit;
+}
+.campo-cidade input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 0;
+  border-color: var(--primary);
+}
+.campo-cidade input[aria-invalid='true'] {
+  border-color: #c4302b;
+}
+.campo-cidade input:disabled {
+  background: #f6f6f5;
+  cursor: not-allowed;
+}
+.campo-cidade svg {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+.seletor-lista li.seletor-vazia {
+  color: var(--muted);
+  cursor: default;
+}
+.seletor-botao:disabled {
+  background: #f6f6f5;
+  cursor: not-allowed;
+}

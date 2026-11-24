@@ -43,7 +43,7 @@ O `mvnw verify` gera o relatório do JaCoCo em `backend/target/site/jacoco/index
 
 | Situação | Resposta esperada | Testes |
 |---|---|---|
-| Sem login em rota protegida | 401 | `AuthControllerTest.semTokenOuComTokenInvalidoResponde401NoFormatoPadrao`, `GestaoOportunidadeControllerTest.soOGestorCria`, `VoluntarioControllerTest.perfilEhSoDoVoluntario` |
+| Sem login em rota protegida | 401 | `AuthControllerTest.semTokenOuComTokenInvalidoResponde401NoFormatoPadrao`, `GestaoOportunidadeControllerTest.voluntarioESemLoginNaoCriamVaga`, `VoluntarioControllerTest.perfilEhSoDoVoluntario` |
 | Papel errado (voluntário na área da ONG, equipe no perfil) | 403 | `GestaoOportunidadeControllerTest.gestorVeTodasAsVagasDaOrganizacaoECoordenadorSoAsDele`, `CandidaturaControllerTest.equipeDaOrganizacaoNaoSeCandidata`, `ParticipacaoControllerTest.historicoEhSoDoVoluntario` |
 | Coordenador em vaga que não é dele | 403 | `GestaoOportunidadeControllerTest.responsavelEditaASuaVagaMasNaoADosOutros`, `CandidaturaControllerTest.soOResponsavelOuOGestorDecidem`, `ParticipacaoControllerTest.soOResponsavelOuOGestorRegistram` |
 | Vaga de outra ONG | 404 | os mesmos três acima |

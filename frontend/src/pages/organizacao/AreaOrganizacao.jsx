@@ -157,7 +157,7 @@ export default function AreaOrganizacao() {
           <p>
             {gestor
               ? 'Crie e acompanhe as vagas da sua organização.'
-              : 'Acompanhe as vagas pelas quais você é responsável.'}
+              : 'Crie e acompanhe as vagas pelas quais você é responsável.'}
           </p>
         </div>
         <div className="ong-heading-actions">
@@ -166,11 +166,9 @@ export default function AreaOrganizacao() {
               <UsersRound size={18} /> Equipe
             </button>
           )}
-          {gestor && (
-            <button className="primary-button" onClick={() => navegar('/organizacao/nova')}>
-              <Plus size={20} /> Anunciar uma vaga
-            </button>
-          )}
+          <button className="primary-button" onClick={() => navegar('/organizacao/nova')}>
+            <Plus size={20} /> Anunciar uma vaga
+          </button>
         </div>
       </div>
       {erroAcao && (
@@ -260,9 +258,7 @@ export default function AreaOrganizacao() {
           <p>
             {oportunidades.length
               ? 'Busque por outro título ou escolha um status diferente.'
-              : gestor
-                ? 'Conte o que sua organização faz e encontre pessoas que querem contribuir com a sua causa.'
-                : 'Quando o gestor deixar uma vaga com você, ela aparece aqui.'}
+              : 'Conte o que sua organização faz e encontre pessoas que querem contribuir com a sua causa.'}
           </p>
           {oportunidades.length ? (
             <button
@@ -275,11 +271,9 @@ export default function AreaOrganizacao() {
               Mostrar todas as vagas
             </button>
           ) : (
-            gestor && (
-              <button className="primary-button" onClick={() => navegar('/organizacao/nova')}>
-                Criar minha primeira vaga <ArrowRight size={18} />
-              </button>
-            )
+            <button className="primary-button" onClick={() => navegar('/organizacao/nova')}>
+              Criar minha primeira vaga <ArrowRight size={18} />
+            </button>
           )}
         </div>
       ) : (
