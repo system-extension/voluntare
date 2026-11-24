@@ -116,6 +116,7 @@ Não fazemos commit direto na `main`. Todo trabalho entra por Pull Request, revi
 
 - [Arquitetura e stack](docs/arquitetura.md)
 - [Decisões e dúvidas](docs/decisoes.md)
+- [Requisitos](docs/requisitos.md)
 - [Regras de negócio](docs/regras-de-negocio.md)
 - [DER e dicionário de dados](docs/der/der.md)
 - [Plano e evidências de testes](docs/testes.md)
