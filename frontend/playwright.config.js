@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 /**
  * Testes de ponta a ponta do fluxo de demonstração (docs/testes.md).
- * Precisam do sistema no ar: docker compose --profile app up -d --build (na raiz).
+ * Precisam do sistema no ar: docker compose -f compose.avaliacao.yaml up -d --build --wait (na raiz).
  * E2E_URL troca o endereço, se o front estiver em outro lugar.
  */
 export default defineConfig({
