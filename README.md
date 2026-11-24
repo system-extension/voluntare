@@ -4,6 +4,70 @@ Plataforma web para gestão de voluntariado. Permite publicar oportunidades, rec
 
 Projeto P04 da Fábrica de Software, Engenharia de Software (Univille).
 
+---
+
+## ▶ Como executar (avaliação)
+
+> **Só é preciso ter o Docker Desktop instalado e aberto.** Não precisa instalar Java, Node nem PostgreSQL: o Docker baixa e compila tudo. Precisa de internet na primeira vez, uns 4 GB de RAM livres e 5 GB de disco.
+
+**1. Instale e abra o Docker Desktop**
+
+Baixe em https://www.docker.com/products/docker-desktop/ e instale. No Windows, se o instalador pedir o WSL 2, aceite e reinicie o computador (se ele não instalar sozinho, rode `wsl --install` no PowerShell como administrador e reinicie).
+
+Abra o Docker Desktop, aceite os termos de uso (o login é opcional, pode pular) e espere aparecer **Engine running** no canto inferior esquerdo da janela.
+
+**2. Baixe o projeto**
+
+Com Git:
+
+```
+git clone https://github.com/system-extension/voluntare.git
+cd voluntare
+```
+
+Sem Git: baixe o ZIP em https://github.com/system-extension/voluntare/archive/refs/heads/main.zip e extraia. Entre nas pastas até chegar na que tem o arquivo `compose.yaml` (normalmente `voluntare-main`). Nessa pasta, clique com o botão direito num espaço vazio e escolha **Abrir no Terminal** (no Windows 10: segure Shift, clique com o botão direito e escolha **Abrir janela do PowerShell aqui**).
+
+**3. Suba o sistema** (no terminal, dentro da pasta que tem o `compose.yaml`)
+
+```
+docker compose -f compose.avaliacao.yaml up -d --build --wait
+```
+
+A primeira vez leva de 5 a 10 minutos, porque o Docker baixa e compila tudo. O comando só termina quando o sistema estiver pronto para usar. No fim aparecem as linhas `voluntare-avaliacao-postgres-1`, `-backend-1` e `-frontend-1` como `Healthy`.
+
+**4. Acesse**
+
+| O quê | Endereço |
+|---|---|
+| Sistema | http://localhost:5173 |
+| Documentação da API (Swagger) | http://localhost:5173/swagger-ui.html |
+
+**5. Entre com um usuário de teste** (senha de todos: `Voluntare@2026`)
+
+| Perfil | E-mail | O que dá para fazer |
+|---|---|---|
+| Voluntária | `fernanda@example.com` | Buscar vagas, candidatar-se, ver candidaturas e histórico de horas, editar perfil |
+| Gestora da ONG | `ana@novoscaminhos.example.org` | Painel, criar e publicar vagas, aceitar candidatos, registrar presença, gerenciar a equipe |
+| Coordenador da ONG | `bruno@novoscaminhos.example.org` | Operar só as vagas pelas quais é responsável |
+
+Também é possível criar uma conta nova de voluntário ou cadastrar uma ONG pela tela de entrar.
+
+**Se algo der errado**
+
+| Problema | Solução |
+|---|---|
+| `docker` não é reconhecido como comando | Feche o terminal e abra outro depois que o Docker Desktop estiver aberto. Se continuar, o Docker Desktop não está instalado. |
+| Erro de conexão com o Docker (`cannot connect`, `pipe`, `daemon`) | O Docker Desktop não está aberto. Abra e espere **Engine running**. |
+| `no configuration file provided` ou `no such file` | O terminal não está na pasta certa. Volte ao passo 2 e abra o terminal na pasta que tem o `compose.yaml`. |
+| `port is already allocated` ou `address already in use` | A porta 5173 está ocupada por outro programa. Suba usando outra porta e acesse por ela. PowerShell: `$env:APP_PORT="8090"; docker compose -f compose.avaliacao.yaml up -d --build --wait`. Prompt de comando (cmd): `set APP_PORT=8090` e depois o comando de subir. Linux/macOS: `APP_PORT=8090 docker compose -f compose.avaliacao.yaml up -d --build --wait`. Depois abra http://localhost:8090. |
+| Erro ao baixar dependências (`timeout`, `Could not resolve`, `Could not find artifact`, `failed to fetch`) | A internet ou o repositório de pacotes oscilou durante o download. Rode o mesmo comando de novo: ele continua de onde parou. |
+
+Só a porta do site é usada no computador, então um PostgreSQL ou outro servidor já instalado não atrapalha.
+
+Os comandos abaixo também são rodados na pasta do projeto. Para desligar: `docker compose -f compose.avaliacao.yaml down`. Para apagar os dados e voltar ao estado inicial: `docker compose -f compose.avaliacao.yaml down -v` e subir de novo.
+
+---
+
 ## Integrantes
 
 | Integrante | Responsabilidade primária |
@@ -52,30 +116,15 @@ Não fazemos commit direto na `main`. Todo trabalho entra por Pull Request, revi
 
 - [Arquitetura e stack](docs/arquitetura.md)
 - [Decisões e dúvidas](docs/decisoes.md)
+- [Requisitos](docs/requisitos.md)
 - [Regras de negócio](docs/regras-de-negocio.md)
 - [DER e dicionário de dados](docs/der/der.md)
 - [Plano e evidências de testes](docs/testes.md)
 - [Mockups e fluxo de telas](docs/mockups/README.md)
 
-## Como executar
+## Ambiente de desenvolvimento
 
-### Jeito mais rápido: só com o Docker
-
-Serve para apresentar ou testar o sistema em qualquer computador. Só precisa do Docker Desktop (no Windows, com WSL 2; veja a instalação abaixo). Na raiz do repositório:
-
-```
-docker compose --profile app up -d --build
-```
-
-A primeira vez demora alguns minutos, porque o Docker baixa as dependências e compila o projeto. Depois:
-
-- Frontend: http://localhost:5173
-- API e Swagger: http://localhost:8080/swagger-ui.html (a API também responde pelo front, em http://localhost:5173/api)
-- Usuários da demonstração: tabela em [Banco de dados](#banco-de-dados)
-
-Para parar: `docker compose --profile app down`. Para recomeçar com o banco zerado: `docker compose --profile app down -v`. Se mudar o código, rode o primeiro comando de novo.
-
-Para desenvolver, o caminho abaixo é melhor: o backend e o front rodam na máquina e atualizam a cada mudança.
+Para só rodar o sistema, use o passo a passo do topo, em [Como executar (avaliação)](#-como-executar-avaliação). As seções abaixo são para quem vai desenvolver: o backend e o front rodam na máquina e atualizam a cada mudança.
 
 ### Pré-requisitos
 
@@ -165,4 +214,4 @@ npm run dev
 
 ### Teste de ponta a ponta
 
-Com o projeto no ar pelo Docker (`docker compose --profile app up -d --build`), o fluxo de demonstração roda no navegador com `npm run e2e` dentro de `frontend` (na primeira vez, `npx playwright install chromium`). Detalhes em [docs/testes.md](docs/testes.md#ponta-a-ponta-navegador).
+Com o projeto no ar pelo Docker (`docker compose -f compose.avaliacao.yaml up -d --build --wait`), o fluxo de demonstração roda no navegador com `npm run e2e` dentro de `frontend` (na primeira vez, `npx playwright install chromium`). Detalhes em [docs/testes.md](docs/testes.md#ponta-a-ponta-navegador).

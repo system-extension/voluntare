@@ -7,7 +7,7 @@ on:
     paths:
       - 'backend/**'
       - 'frontend/**'
-      - 'compose.yaml'
+      - 'compose.avaliacao.yaml'
       - '.github/workflows/e2e.yml'
   push:
     branches: [develop, main]
@@ -26,15 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - run: docker compose --profile app up -d --build
-
-      - name: Espera o backend subir
-        run: |
-          for i in $(seq 1 60); do
-            curl -sf http://localhost:5173/api/oportunidades > /dev/null && exit 0
-            sleep 3
-          done
-          exit 1
+      - run: docker compose -f compose.avaliacao.yaml up -d --build --wait
 
       - uses: actions/setup-node@v7
         with:
@@ -57,7 +49,7 @@ jobs:
           retention-days: 7
 
       - if: failure()
-        run: docker compose --profile app logs backend
+        run: docker compose -f compose.avaliacao.yaml logs backend
 
       - if: always()
-        run: docker compose --profile app down -v
+        run: docker compose -f compose.avaliacao.yaml down -v
