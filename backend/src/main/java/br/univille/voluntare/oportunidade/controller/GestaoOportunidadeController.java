@@ -60,8 +60,7 @@ public class GestaoOportunidadeController {
 
     @PostMapping("/api/oportunidades")
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasRole('GESTOR')")
-    @Operation(summary = "Cria a vaga. rascunho=true salva só com o título; senão já publica")
+    @Operation(summary = "Cria a vaga (gestor ou coordenador). rascunho=true salva só com o título; senão já publica")
     public OportunidadeResponse criar(@AuthenticationPrincipal Jwt token,
             @Valid @RequestBody OportunidadeRequest dados) {
         return gestao.criar(autor(token), dados);

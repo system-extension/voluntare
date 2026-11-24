@@ -1,0 +1,55 @@
+# Fluxo de demonstração no navegador (Playwright), com o sistema inteiro no ar pelo Docker:
+# a gestora publica, a voluntária se candidata, o coordenador aceita e registra a presença.
+name: Fluxo de ponta a ponta
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'compose.avaliacao.yaml'
+      - '.github/workflows/e2e.yml'
+  push:
+    branches: [develop, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      - run: docker compose -f compose.avaliacao.yaml up -d --build --wait
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Playwright
+        working-directory: frontend
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run e2e
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-playwright
+          path: frontend/playwright-report
+          retention-days: 7
+
+      - if: failure()
+        run: docker compose -f compose.avaliacao.yaml logs backend
+
+      - if: always()
+        run: docker compose -f compose.avaliacao.yaml down -v

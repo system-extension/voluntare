@@ -1,5 +1,6 @@
-# Ambiente local: sobe o PostgreSQL igual para toda a equipe.
+# Desenvolvimento: sobe só o PostgreSQL (backend e front rodam na máquina).
 # Uso: docker compose up -d   (na raiz do repositório)
+# Para só rodar o sistema inteiro, use o compose.avaliacao.yaml (ver o topo do README).
 services:
   postgres:
     image: postgres:16-alpine
